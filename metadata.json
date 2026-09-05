@@ -1,0 +1,6 @@
+{
+  "name": "Product Scanner",
+  "description": "A production-ready AI and barcode product scanner utilizing real-time video stream detection and Gemini AI Vision.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

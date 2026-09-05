@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Product Scanner Terminal</title>
+    <meta name="description" content="Precision shelf-life tracking tool powered by real-time hardware decoding and multimodal AI Vision." />
+    <!-- Tailwind v3 Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cyber: {
+                darker: '#0A0B0D',
+                dark: '#121417',
+                element: '#1C1F26',
+                border: '#2A2D35',
+                cyan: '#00F0FF',
+                green: '#00FF41',
+                red: '#FF4444',
+                orange: '#FFB800',
+                text: '#E2E4E9',
+                muted: '#6B7280'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- ZXing Barcode Library via CDN -->
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body class="bg-cyber-darker text-cyber-text font-mono min-h-screen">
+
+    <div class="flex min-h-screen">
+      
+      <!-- ============================================== -->
+      <!-- LEFT SIDE NAVIGATION STRIP (SPECIALIST ASIDE)  -->
+      <!-- ============================================== -->
+      <aside class="hidden md:flex w-20 bg-cyber-dark border-r border-cyber-border flex-col items-center py-6 gap-8 flex-shrink-0">
+        <!-- Brand Tech Symbol -->
+        <div class="w-12 h-12 bg-cyber-element rounded flex items-center justify-center border border-cyber-border">
+          <div class="w-5 h-5 border-2 border-cyber-cyan rounded-sm flex items-center justify-center relative">
+            <span class="absolute w-1 h-1 bg-cyber-green rounded-full"></span>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <nav class="flex flex-col gap-6 flex-1">
+          <button onclick="app.switchView('dashboard')" title="Diagnostic Dashboard" class="p-3 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 hover:bg-cyber-cyan/25 transition flex items-center justify-center">
+            <i data-lucide="layout-grid" class="w-5 h-5"></i>
+          </button>
+          <button onclick="app.openScanner()" title="Initiate Laser Camera Scanner" class="p-3 rounded text-cyber-muted hover:text-cyber-cyan hover:bg-cyber-element transition flex items-center justify-center">
+            <i data-lucide="scan-barcode" class="w-5 h-5"></i>
+          </button>
+          <button onclick="app.triggerTestScan()" title="Trigger Calibration Mock" class="p-3 rounded text-cyber-muted hover:text-cyber-green hover:bg-cyber-element transition flex items-center justify-center">
+            <i data-lucide="flask" class="w-5 h-5"></i>
+          </button>
+        </nav>
+
+        <div class="mt-auto p-3 text-cyber-muted flex flex-col items-center gap-4">
+          <span class="text-[8px] font-mono tracking-widest uppercase rotate-90 my-2 text-cyber-cyan">ONLINE</span>
+          <i data-lucide="cpu" class="w-5 h-5"></i>
+        </div>
+      </aside>
+
+      <!-- ============================================== -->
+      <!-- MAIN DIAGNOSTIC WORKSPACE FRAME               -->
+      <!-- ============================================== -->
+      <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+        
+        <!-- Header Tech Bar -->
+        <header class="h-16 border-b border-cyber-border px-4 md:px-8 flex items-center justify-between bg-cyber-dark sticky top-0 z-40">
+          <div class="flex items-center gap-3">
+            <div class="md:hidden bg-cyber-element border border-cyber-border p-1.5 rounded text-cyber-cyan">
+              <i data-lucide="scan-barcode" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs md:text-sm font-bold tracking-widest text-cyber-cyan uppercase">Scanner Terminal</span>
+                <span class="text-[9px] bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 px-1.5 py-0.5 rounded font-mono">v2.4.0</span>
+              </div>
+              <p class="text-[10px] text-cyber-muted hidden sm:block font-mono">Hardware Interface: DECODING_READY_256</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 items-center">
+            <div id="connection-indicator" class="flex items-center gap-2 text-[10px] font-mono bg-cyber-green/10 text-cyber-green border border-cyber-green/30 px-2.5 py-1 rounded">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyber-green animate-pulse"></span>
+              <span>CAMERA & VISION LIVE</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dynamic View Content Workspace -->
+        <main class="flex-grow p-4 md:p-6 space-y-6 max-w-7xl w-full mx-auto">
+
+          <!-- ============================================== -->
+          <!-- VIEW 1: DASHBOARD / PRODUCTS HISTORY -->
+          <!-- ============================================== -->
+          <section id="view-dashboard" class="space-y-6">
+            
+            <!-- Calibration Dashboard Banner -->
+            <div class="bg-cyber-dark border border-cyber-border p-6 rounded relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div class="absolute right-0 top-0 opacity-5 pointer-events-none">
+                <i data-lucide="binary" class="w-64 h-64 text-cyber-cyan"></i>
+              </div>
+              <div class="space-y-3 max-w-2xl">
+                <div class="inline-flex bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 rounded px-2.5 py-0.5 text-[10px] uppercase tracking-wider font-bold">
+                  Shelf-Life Precision Diagnostics
+                </div>
+                <h2 class="text-xl md:text-2xl font-bold tracking-tight text-cyber-text leading-tight uppercase">
+                  Analyze products, read barcodes, & extract ingredients.
+                </h2>
+                <p class="text-cyber-muted text-xs leading-relaxed max-w-xl">
+                  Align standard barcode formats with the hardware capture engine, or initiate a snap capture to trigger high-fidelity multimodal OCR for chemical compositions and dates.
+                </p>
+              </div>
+              <div class="flex flex-col sm:flex-row md:flex-col gap-2.5 flex-shrink-0">
+                <button onclick="app.openScanner()" class="bg-cyber-cyan hover:brightness-110 text-cyber-darker font-bold text-xs uppercase px-5 py-3 rounded transition duration-200 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,240,255,0.25)]">
+                  <i data-lucide="scan" class="w-4 h-4"></i>
+                  Start Camera Scanner
+                </button>
+                <button onclick="app.triggerTestScan()" class="bg-cyber-element hover:bg-cyber-border text-cyber-cyan border border-cyber-cyan/30 font-bold text-xs uppercase px-5 py-3 rounded transition duration-200 flex items-center justify-center gap-2">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                  Calibration Sandbox
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic System Metrics Readout -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
+              <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex items-center gap-4 relative">
+                <div class="absolute top-2 right-2 text-[9px] text-cyber-muted font-bold">REG_01</div>
+                <div class="bg-cyber-cyan/10 text-cyber-cyan p-2.5 rounded border border-cyber-cyan/30">
+                  <i data-lucide="folder-git" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-[10px] text-cyber-muted uppercase tracking-wider">TOTAL LOGGED</p>
+                  <h3 id="stat-total" class="text-xl font-bold text-cyber-cyan">0</h3>
+                </div>
+              </div>
+              <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex items-center gap-4 relative">
+                <div class="absolute top-2 right-2 text-[9px] text-cyber-muted font-bold">REG_02</div>
+                <div class="bg-cyber-orange/10 text-cyber-orange p-2.5 rounded border border-cyber-orange/30">
+                  <i data-lucide="hourglass" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-[10px] text-cyber-muted uppercase tracking-wider">EXPIRING (&lt;30D)</p>
+                  <h3 id="stat-expiring" class="text-xl font-bold text-cyber-orange">0</h3>
+                </div>
+              </div>
+              <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex items-center gap-4 relative">
+                <div class="absolute top-2 right-2 text-[9px] text-cyber-muted font-bold">REG_03</div>
+                <div class="bg-cyber-red/10 text-cyber-red p-2.5 rounded border border-cyber-red/30">
+                  <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-[10px] text-cyber-muted uppercase tracking-wider">EXPIRED COUNT</p>
+                  <h3 id="stat-expired" class="text-xl font-bold text-cyber-red">0</h3>
+                </div>
+              </div>
+            </div>
+
+            <!-- System Filters & Diagnostics Controller -->
+            <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex flex-col md:flex-row justify-between items-center gap-4">
+              <div class="w-full md:max-w-md relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-cyber-muted">
+                  <i data-lucide="search" class="w-4 h-4"></i>
+                </span>
+                <input type="text" id="search-input" onkeyup="app.handleSearch()" placeholder="Search registry database..." class="w-full bg-cyber-element border border-cyber-border text-cyber-text rounded py-2 pl-9 pr-4 text-xs font-mono" />
+              </div>
+              
+              <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                <button onclick="app.setFilter('all')" id="filter-all" class="flex-grow sm:flex-grow-0 bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 px-4 py-2 rounded text-xs transition uppercase font-bold tracking-tight">
+                  ALL ENTRIES
+                </button>
+                <button onclick="app.setFilter('expiring')" id="filter-expiring" class="flex-grow sm:flex-grow-0 hover:bg-cyber-element text-cyber-muted font-bold px-4 py-2 rounded text-xs transition border border-transparent uppercase tracking-tight">
+                  EXPIRING SOON
+                </button>
+                <button onclick="app.setFilter('expired')" id="filter-expired" class="flex-grow sm:flex-grow-0 hover:bg-cyber-element text-cyber-muted font-bold px-4 py-2 rounded text-xs transition border border-transparent uppercase tracking-tight">
+                  EXPIRED LIST
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Product Matrix -->
+            <div id="history-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Rendered programmatically -->
+            </div>
+
+            <!-- Empty Database Diagnostics -->
+            <div id="empty-state" class="bg-cyber-dark border border-dashed border-cyber-border p-12 rounded flex flex-col items-center text-center max-w-xl mx-auto space-y-4">
+              <div class="bg-cyber-cyan/10 text-cyber-cyan p-4 rounded border border-cyber-cyan/30">
+                <i data-lucide="scan-line" class="w-8 h-8"></i>
+              </div>
+              <div class="space-y-1">
+                <h3 class="text-sm font-bold text-cyber-text uppercase tracking-wider">Registry database empty</h3>
+                <p class="text-cyber-muted text-xs max-w-xs leading-normal">
+                  No products are currently cataloged. Boot the hardware scanner below to index local stock.
+                </p>
+              </div>
+              <button onclick="app.openScanner()" class="bg-cyber-cyan text-cyber-darker hover:brightness-110 font-bold text-xs uppercase px-5 py-2.5 rounded transition shadow-[0_0_15px_rgba(0,240,255,0.25)]">
+                Initialize Scanner
+              </button>
+            </div>
+
+          </section>
+
+          <!-- ============================================== -->
+          <!-- VIEW 2: HARDWARE LASER CAMERA SCANNER        -->
+          <!-- ============================================== -->
+          <section id="view-scanner" class="hidden max-w-lg mx-auto space-y-4">
+            
+            <div class="flex justify-between items-center bg-cyber-dark border border-cyber-border p-2.5 rounded">
+              <button onclick="app.closeScanner()" class="bg-cyber-element border border-cyber-border hover:bg-cyber-border text-cyber-text p-2 rounded transition flex items-center justify-center">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              </button>
+              <h2 class="text-xs font-bold uppercase tracking-widest text-cyber-cyan">LASER CAPTURE TERMINAL</h2>
+              <button id="btn-camera-toggle" onclick="app.toggleCameraStream()" class="bg-cyber-element border border-cyber-border hover:bg-cyber-border text-cyber-text p-2 rounded transition flex items-center justify-center">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Viewport Overlay with cyber crosshairs -->
+            <div class="scanner-viewport w-full aspect-[4/3] bg-black rounded relative overflow-hidden">
+              <video id="scanner-video" class="w-full h-full object-cover"></video>
+              
+              <!-- Crosshair Scanner Mask -->
+              <div class="scanner-overlay">
+                <div id="scan-target-area" class="scan-box">
+                  <div class="corner-bl"></div>
+                  <div class="corner-br"></div>
+                  <div class="scan-line"></div>
+                </div>
+                
+                <!-- Laser Barcode Diagnostic Readout overlay -->
+                <div class="absolute bottom-3 left-3 right-3 bg-cyber-darker/90 rounded border border-cyber-border p-3 flex items-center justify-between backdrop-blur">
+                  <div class="flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                      <span id="barcode-indicator-ring" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-orange opacity-75"></span>
+                      <span id="barcode-indicator" class="relative inline-flex rounded-full h-2 w-2 bg-cyber-orange"></span>
+                    </span>
+                    <span id="barcode-status-text" class="text-[10px] text-cyber-text font-bold font-mono tracking-wider">LASER: DECODING...</span>
+                  </div>
+                  <div id="barcode-result-badge" class="hidden text-[9px] font-mono bg-cyber-green text-cyber-darker font-bold px-1.5 py-0.5 rounded uppercase">
+                    EAN-13
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diagnostic control deck -->
+            <div class="bg-cyber-dark border border-cyber-border rounded p-4 flex flex-col items-center gap-4">
+              <div class="flex justify-between w-full text-[9px] text-cyber-muted font-bold font-mono uppercase border-b border-cyber-border pb-2">
+                <span>ZOOM: 1.0X</span>
+                <span>EXPOSURE: DYNAMIC_AUTO</span>
+                <span>STATUS: READY</span>
+              </div>
+              <p class="text-[10px] text-center text-cyber-muted leading-relaxed">
+                Center barcode inside target viewfinder to auto-trigger database lookups, or capture high-res frame to activate Multimodal OCR analysis.
+              </p>
+
+              <!-- Main Red Capture Button -->
+              <button id="btn-capture" onclick="app.captureAndProcess()" class="w-full bg-cyber-red hover:bg-red-500 text-white font-bold py-3.5 rounded transition flex items-center justify-center gap-2 text-xs uppercase tracking-widest font-mono shadow-[0_0_15px_rgba(255,68,68,0.25)]">
+                <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                SNAP CAPTURE FRAME
+              </button>
+            </div>
+
+          </section>
+
+          <!-- ============================================== -->
+          <!-- VIEW 3: AI DIAGNOSTICS & VERIFICATION PANEL    -->
+          <!-- ============================================== -->
+          <section id="view-verify" class="hidden space-y-6">
+
+            <!-- Control deck headers -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-cyber-dark border border-cyber-border p-4 rounded">
+              <div>
+                <h2 class="text-sm font-bold text-cyber-cyan uppercase tracking-widest">VERIFY SCAN LOGS</h2>
+                <p class="text-[10px] text-cyber-muted font-mono uppercase">Review parameters before compiling into registry storage.</p>
+              </div>
+              <div class="flex gap-2 w-full md:w-auto">
+                <button onclick="app.cancelVerification()" class="flex-1 md:flex-none bg-cyber-element border border-cyber-border text-cyber-text hover:bg-cyber-border font-bold text-xs uppercase px-4 py-2.5 rounded transition">
+                  DISCARD ENTRY
+                </button>
+                <button onclick="app.saveVerification()" class="flex-1 md:flex-none bg-cyber-green text-cyber-darker hover:brightness-115 font-bold text-xs uppercase px-6 py-2.5 rounded transition shadow-[0_0_15px_rgba(0,255,65,0.25)]">
+                  COMMIT ENTRY
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              <!-- Left Diagnostic Side Box -->
+              <div class="lg:col-span-4 space-y-6">
+                
+                <!-- Snapshot Frame visualizer -->
+                <div class="bg-cyber-dark border border-cyber-border p-4 rounded space-y-3">
+                  <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-wider">LOGGED FRAME IMAGE</h3>
+                  <div class="relative aspect-square w-full rounded overflow-hidden bg-black border border-cyber-border">
+                    <img id="verify-preview-img" class="w-full h-full object-cover" src="" alt="Captured Frame" />
+                    <div class="absolute bottom-2 right-2 bg-cyber-darker/80 text-cyber-cyan text-[8px] px-2 py-1 border border-cyber-border rounded backdrop-blur">
+                      TARGET_SNAPSHOT_CROP
+                    </div>
+                  </div>
+                  <button onclick="app.openScanner()" class="w-full bg-cyber-element hover:bg-cyber-border text-cyber-cyan text-[10px] font-bold py-2 rounded border border-cyber-cyan/25 transition flex items-center justify-center gap-1.5 uppercase font-mono">
+                    <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
+                    Retake Stream Snapshot
+                  </button>
+                </div>
+
+                <!-- AI confidence diagnostics dashboard -->
+                <div id="ai-confidence-panel" class="hidden bg-cyber-dark border border-cyber-border p-4 rounded space-y-3">
+                  <div class="flex justify-between items-center">
+                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-wider">AI DIAGNOSTIC INDEX</h3>
+                    <span id="ai-confidence-value" class="text-xs font-bold text-cyber-cyan font-mono">0%</span>
+                  </div>
+                  
+                  <div class="w-full bg-cyber-element rounded-full h-1.5 border border-cyber-border">
+                    <div id="ai-confidence-bar" class="bg-cyber-cyan h-full rounded" style="width: 0%"></div>
+                  </div>
+
+                  <!-- Confidence warnings -->
+                  <div id="ai-confidence-warning" class="hidden flex items-start gap-2 bg-cyber-orange/10 text-cyber-orange p-3 rounded border border-cyber-orange/30 text-[10px]">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0 text-cyber-orange"></i>
+                    <p class="leading-normal">
+                      <strong>PROBABILITY DEVIATION:</strong> Extraction metrics are low. Manual form validation highly recommended.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right input form module -->
+              <div class="lg:col-span-8 bg-cyber-dark border border-cyber-border p-6 rounded">
+                <form id="verify-form" class="space-y-6" onsubmit="event.preventDefault()">
+                  
+                  <!-- Form Module 1: Core ID -->
+                  <div class="space-y-4">
+                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest border-b border-cyber-border pb-2">01 // CORE IDENTITY INDEX</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      
+                      <!-- Name -->
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-name">Product Name</label>
+                          <span id="source-product_name" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-name" required class="w-full" />
+                      </div>
+
+                      <!-- Brand -->
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-brand">Brand / Producer</label>
+                          <span id="source-brand" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-brand" class="w-full" />
+                      </div>
+
+                      <!-- Barcode -->
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-barcode">Barcode Index</label>
+                          <span id="source-barcode" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-barcode" class="w-full" />
+                      </div>
+
+                      <!-- Category -->
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-category">Category Register</label>
+                          <span id="source-category" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <select id="v-category" class="w-full">
+                          <option value="General">General / Other</option>
+                          <option value="Food">Food / Groceries</option>
+                          <option value="Beverage">Beverage</option>
+                          <option value="Cosmetic">Cosmetic / Personal Care</option>
+                          <option value="Medicine">Medicine / Pharma</option>
+                          <option value="Electronics">Electronics</option>
+                          <option value="Household">Household Care</option>
+                        </select>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Form Module 2: Financial/Quantities -->
+                  <div class="space-y-4 pt-4 border-t border-cyber-border">
+                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest border-b border-cyber-border pb-2">02 // FINANCIAL & QUANTITIES MATRIX</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      
+                      <!-- Qty -->
+                      <div class="md:col-span-2 space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-quantity">Net Contents</label>
+                          <span id="source-quantity" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-quantity" placeholder="e.g. 500, 1.5, 12" class="w-full" />
+                      </div>
+
+                      <!-- Unit -->
+                      <div class="md:col-span-2 space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-unit">Scale Unit</label>
+                          <span id="source-unit" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-unit" placeholder="e.g. g, ml, kg, L, pcs" class="w-full" />
+                      </div>
+
+                      <!-- MRP -->
+                      <div class="md:col-span-2 space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-mrp">Max Retail Price (MRP)</label>
+                          <span id="source-mrp" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-mrp" placeholder="e.g. $5.99" class="w-full" />
+                      </div>
+
+                      <!-- Price -->
+                      <div class="md:col-span-2 space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-selling_price">Acquisition Price</label>
+                          <span id="source-selling_price" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-selling_price" placeholder="e.g. $4.99" class="w-full" />
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Form Module 3: Dates & Lots -->
+                  <div class="space-y-4 pt-4 border-t border-cyber-border">
+                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest border-b border-cyber-border pb-2">03 // SHELF-LIFE & LOT REGISTER</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      
+                      <!-- MFG Date -->
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-mfg">MFG Date</label>
+                          <span id="source-manufacture_date" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="date" id="v-mfg" class="w-full font-mono" />
+                      </div>
+
+                      <!-- EXP Date -->
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-exp">EXP Expiry Date</label>
+                          <span id="source-expiry_date" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="date" id="v-exp" class="w-full font-mono" />
+                      </div>
+
+                      <!-- Lot -->
+                      <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-batch">Batch/Lot Index</label>
+                          <span id="source-batch_number" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                        </div>
+                        <input type="text" id="v-batch" placeholder="e.g. B-1029X" class="w-full" />
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Form Module 4: Compositions -->
+                  <div class="space-y-4 pt-4 border-t border-cyber-border">
+                    <div class="flex justify-between items-center">
+                      <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest">04 // CHEMICAL & INGREDIENT COMPOSITION</h3>
+                      <span id="source-ingredients" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-ingredients">Composition Matrix (CSV)</label>
+                      <textarea id="v-ingredients" rows="3" placeholder="e.g. Water, Cane Sugar, Plant Lipids..." class="w-full"></textarea>
+                    </div>
+                  </div>
+
+                </form>
+              </div>
+
+            </div>
+
+          </section>
+
+        </main>
+
+        <!-- System Footer -->
+        <footer class="h-10 bg-cyber-dark border-t border-cyber-border flex items-center px-4 md:px-8 justify-between text-[9px] font-mono text-cyber-muted tracking-tight mt-auto">
+          <div class="flex gap-4">
+            <span class="hidden sm:inline">DECODER_BUFFER: ACTIVE</span>
+            <span>DIAGNOSTIC_FPS: 60.0</span>
+            <span class="hidden md:inline">API: Vision_Platform_v3.2</span>
+          </div>
+          <div>
+            <span>SYSTEM ENCRYPTION: AES_256_LOCAL</span>
+          </div>
+        </footer>
+
+      </div>
+
+    </div>
+
+    <!-- Global Processing Overlay Backdrop -->
+    <div id="loading-backdrop" class="hidden fixed inset-0 bg-cyber-darker/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center">
+      <div class="bg-cyber-dark border border-cyber-border text-cyber-text p-8 rounded max-w-sm w-full space-y-6 shadow-2xl">
+        <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
+          <!-- Cyber dual spinning ring -->
+          <div class="absolute inset-0 rounded-full border-2 border-cyber-border"></div>
+          <div class="absolute inset-0 rounded-full border-2 border-t-cyber-cyan border-r-cyber-cyan animate-spin"></div>
+          <div class="w-2 h-2 bg-cyber-green rounded-full animate-ping"></div>
+        </div>
+        <div class="space-y-2 font-mono">
+          <h4 id="loading-title" class="text-xs font-bold uppercase text-cyber-cyan tracking-widest">Optimizing stream...</h4>
+          <p id="loading-desc" class="text-[10px] text-cyber-muted leading-relaxed uppercase">
+            Recalibrating high-fidelity camera optics.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Registry Details Modal Viewer -->
+    <div id="product-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="bg-cyber-dark border border-cyber-border rounded max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col font-mono">
+        <div class="p-4 border-b border-cyber-border flex justify-between items-center bg-cyber-darker">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-cyber-cyan">REGISTRY RECORD PREVIEW</h3>
+          <button onclick="app.closeModal()" class="text-cyber-muted hover:text-cyber-text transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        
+        <div id="modal-content" class="p-6 space-y-6">
+          <!-- Populated programmatically -->
+        </div>
+
+        <div class="p-4 border-t border-cyber-border bg-cyber-darker flex justify-between items-center">
+          <button id="modal-btn-delete" class="text-cyber-red hover:bg-cyber-red/10 border border-transparent hover:border-cyber-red/30 font-bold text-xs uppercase px-4 py-2 rounded transition font-mono">
+            DELETE FILE
+          </button>
+          <div class="flex gap-2">
+            <button onclick="app.closeModal()" class="bg-cyber-element border border-cyber-border text-cyber-text font-bold text-xs uppercase px-4 py-2 rounded hover:bg-cyber-border transition">
+              CLOSE
+            </button>
+            <button id="modal-btn-edit" class="bg-cyber-cyan text-cyber-darker font-bold text-xs uppercase px-4 py-2 rounded hover:brightness-110 transition">
+              EDIT ENTRY
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Tech banner -->
+    <div id="toast-container" class="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none">
+      <!-- Toasts inserted programmatically -->
+    </div>
+
+    <!-- Main Client Script -->
+    <script type="module" src="/app.js"></script>
+
+  </body>
+</html>
