@@ -5,31 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Product Scanner Terminal</title>
     <meta name="description" content="Precision shelf-life tracking tool powered by real-time hardware decoding and multimodal AI Vision." />
-    <!-- Tailwind v3 Play CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              cyber: {
-                darker: '#0A0B0D',
-                dark: '#121417',
-                element: '#1C1F26',
-                border: '#2A2D35',
-                cyan: '#00F0FF',
-                green: '#00FF41',
-                red: '#FF4444',
-                orange: '#FFB800',
-                text: '#E2E4E9',
-                muted: '#6B7280'
-              }
-            }
-          }
-        }
-      }
-    </script>
-    <link rel="stylesheet" href="/styles.css" />
     <!-- ZXing Barcode Library via CDN -->
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <!-- Lucide Icons Library -->
@@ -567,7 +542,7 @@
     </div>
 
     <!-- Main Client Script -->
-    <script type="module" src="/app.js"></script>
+    <script type="module" src="/src/main.js"></script>
 
   </body>
 </html>

@@ -103,7 +103,9 @@ class App {
   async initApp() {
     try {
       // Setup icons
-      lucide.createIcons();
+      if (window.lucide) {
+        lucide.createIcons();
+      }
       
       // Load products list
       this.refreshDashboard();
@@ -158,7 +160,9 @@ class App {
 
     // Render list
     this.renderProductsList(products);
-    lucide.createIcons();
+    if (window.lucide) {
+      lucide.createIcons();
+    }
   }
 
   renderProductsList(products) {
@@ -235,7 +239,9 @@ class App {
     const query = this.searchInput.value;
     const filtered = searchProducts(query);
     this.renderProductsList(filtered);
-    lucide.createIcons();
+    if (window.lucide) {
+      lucide.createIcons();
+    }
   }
 
   setFilter(filterName) {
@@ -471,7 +477,9 @@ class App {
       }
     });
 
-    lucide.createIcons();
+    if (window.lucide) {
+      lucide.createIcons();
+    }
   }
 
   cancelVerification() {
@@ -637,7 +645,9 @@ class App {
     this.modalBtnDelete.onclick = () => this.deleteRecord(p.id);
     this.modalBtnEdit.onclick = () => this.editRecord(p);
 
-    lucide.createIcons();
+    if (window.lucide) {
+      lucide.createIcons();
+    }
   }
 
   closeModal() {
@@ -775,7 +785,9 @@ class App {
     `;
 
     toastContainer.appendChild(toast);
-    lucide.createIcons();
+    if (window.lucide) {
+      lucide.createIcons();
+    }
 
     // Trigger transition
     setTimeout(() => {
@@ -793,5 +805,6 @@ class App {
 }
 
 // Instantiate and expose globally
-window.app = new App();
-export default window.app;
+const appInstance = new App();
+window.app = appInstance;
+export default appInstance;

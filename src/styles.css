@@ -1,3 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-darker: #0A0B0D;
+  --color-cyber-dark: #121417;
+  --color-cyber-element: #1C1F26;
+  --color-cyber-border: #2A2D35;
+  --color-cyber-cyan: #00F0FF;
+  --color-cyber-green: #00FF41;
+  --color-cyber-red: #FF4444;
+  --color-cyber-orange: #FFB800;
+  --color-cyber-text: #E2E4E9;
+  --color-cyber-muted: #6B7280;
+}
+
 /*
  * Stylesheet for AI Product Scanner
  * Theme: Hardware / Specialist Tool (Cyber Industrial Neon)

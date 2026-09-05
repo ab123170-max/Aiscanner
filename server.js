@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from "@google/genai";
+import { createServer as createViteServer } from 'vite';
 
 dotenv.config();
 
@@ -15,9 +16,6 @@ const __dirname = path.dirname(__filename);
 // Allow large image uploads
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
-// Serve static assets from root directory
-app.use(express.static(__dirname));
 
 // Lazy initialized AI client helper
 let aiClient = null;
@@ -216,11 +214,29 @@ app.get('/api/lookup-product', async (req, res) => {
   }
 });
 
-// Fallback all other routes to index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Setup Vite middleware for development or static file serving for production
+async function setupFrontend() {
+  if (process.env.NODE_ENV !== "production") {
+    console.log('[Vite Engine] Initializing Vite middleware for development...');
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    console.log('[Vite Engine] Initializing static files serving for production...');
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Product Scanner backend running on port ${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Product Scanner full-stack app running on port ${PORT}`);
+  });
+}
+
+setupFrontend().catch(err => {
+  console.error('[Vite Engine] Failed to start server:', err);
 });

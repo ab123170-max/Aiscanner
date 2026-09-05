@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "build": "echo 'No compile needed for vanilla build'",
-    "start": "node server.js",
+    "build": "vite build",
+    "start": "NODE_ENV=production node server.js",
+    "preview": "vite preview",
     "lint": "echo 'Linter skipped'"
   },
   "dependencies": {
