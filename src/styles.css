@@ -1,52 +1,69 @@
 @import "tailwindcss";
 
-@theme {
-  --color-cyber-darker: #0A0B0D;
-  --color-cyber-dark: #121417;
-  --color-cyber-element: #1C1F26;
-  --color-cyber-border: #2A2D35;
-  --color-cyber-cyan: #00F0FF;
-  --color-cyber-green: #00FF41;
-  --color-cyber-red: #FF4444;
-  --color-cyber-orange: #FFB800;
-  --color-cyber-text: #E2E4E9;
-  --color-cyber-muted: #6B7280;
-}
-
-/*
- * Stylesheet for AI Product Scanner
- * Theme: Hardware / Specialist Tool (Cyber Industrial Neon)
- */
-
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
 
 :root {
-  --primary: #00F0FF;         /* Neon Cyan */
-  --primary-light: #00F0FF;   /* Neon Cyan */
-  --accent: #00FF41;          /* Neon Green */
-  --bg-app: #0A0B0D;          /* Cyber Dark background */
-  --bg-header: #0F1115;       /* Header dark bar */
-  --bg-card: #121417;         /* Container background */
-  --bg-element: #1C1F26;      /* Industrial Grey elements */
-  --text-main: #E2E4E9;       /* Bright tech white */
-  --text-muted: #6B7280;      /* Dim tech grey */
-  --border: #2A2D35;          /* Industrial steel divider */
-  --border-focus: #3F444E;    /* Highlighted divider */
-  --radius-card: 6px;         /* Sharp industrial corners */
-  --radius-pill: 4px;         /* Small bevel corners for inputs/buttons */
-  --shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+  --cyber-darker: #f8fafc;     /* Soft slate light grey background */
+  --cyber-dark: #ffffff;       /* Pure white cards */
+  --cyber-element: #f1f5f9;    /* Light element fill */
+  --cyber-border: #e2e8f0;    /* Soft borders */
+  --cyber-cyan: #4f46e5;      /* Trustworthy Indigo/Blue */
+  --cyber-green: #10b981;     /* Verified Success Green */
+  --cyber-red: #ef4444;       /* Friendly alert red */
+  --cyber-orange: #f59e0b;    /* Warm advice warning orange */
+  --cyber-text: #0f172a;      /* Clean contrast slate text */
+  --cyber-muted: #64748b;     /* Slate muted text */
+
+  --primary: var(--cyber-cyan);
+  --primary-light: #6366f1;
+  --accent: var(--cyber-green);
+  --bg-app: var(--cyber-darker);
+  --bg-header: var(--cyber-dark);
+  --bg-card: var(--cyber-dark);
+  --bg-element: var(--cyber-element);
+  --text-main: var(--cyber-text);
+  --text-muted: var(--cyber-muted);
+  --border: var(--cyber-border);
+  --border-focus: #94a3b8;
+  --radius-card: 16px;        /* Soft premium rounded corners */
+  --radius-pill: 12px;        /* Round touch inputs and buttons */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  --cyber-darker: #090d16;     /* Comfortable deep black-blue */
+  --cyber-dark: #111827;       /* Deep grey-blue cards */
+  --cyber-element: #1f2937;    /* Slate fill */
+  --cyber-border: #374151;    /* Slate border */
+  --cyber-cyan: #6366f1;      /* Bright premium indigo for action */
+  --cyber-green: #10b981;     /* Fresh success emerald */
+  --cyber-red: #f87171;       /* Warm alert red */
+  --cyber-orange: #fbbf24;    /* Gold warning */
+  --cyber-text: #f9fafb;      /* High contrast bright text */
+  --cyber-muted: #9ca3af;     /* Balanced gray */
+}
+
+@theme {
+  --color-cyber-darker: var(--cyber-darker);
+  --color-cyber-dark: var(--cyber-dark);
+  --color-cyber-element: var(--cyber-element);
+  --color-cyber-border: var(--cyber-border);
+  --color-cyber-cyan: var(--cyber-cyan);
+  --color-cyber-green: var(--cyber-green);
+  --color-cyber-red: var(--cyber-red);
+  --color-cyber-orange: var(--cyber-orange);
+  --color-cyber-text: var(--cyber-text);
+  --color-cyber-muted: var(--cyber-muted);
 }
 
 body {
-  font-family: 'JetBrains Mono', 'Share Tech Mono', monospace, ui-monospace, SFMono-Regular;
+  font-family: 'DM Sans', sans-serif;
   background-color: var(--bg-app);
   color: var(--text-main);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  background-image: radial-gradient(var(--border) 1px, transparent 0);
-  background-size: 24px 24px;
 }
 
 /* Custom Scrollbar to match industrial UI */
@@ -243,4 +260,97 @@ input:focus, select:focus, textarea:focus {
 #product-detail-modal {
   background-color: rgba(5, 6, 8, 0.85);
   backdrop-filter: blur(4px);
+}
+
+/* Premium Multi-Shot Tab Buttons */
+.slot-tab-btn {
+  background-color: var(--bg-element);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 4px;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  outline: none !important;
+}
+
+.slot-tab-btn:hover {
+  border-color: var(--border-focus);
+  color: var(--text-main);
+}
+
+.slot-tab-btn.active {
+  background-color: rgba(0, 240, 255, 0.08);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.1);
+}
+
+.slot-tab-btn.captured {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Status dots for multi-shot slot buttons */
+.status-dot {
+  font-size: 8px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+/* 3D Viewer Image Interactive State */
+#verify-preview-img {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Image select and swipe dot classes */
+.viewer-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--border);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.viewer-dot.active {
+  background-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+  width: 12px;
+  border-radius: 3px;
+}
+
+.thumbnail-slot {
+  position: relative;
+  aspect-ratio: 1;
+  background-color: #000;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.thumbnail-slot.filled {
+  border-style: solid;
+  border-color: var(--border);
+}
+
+.thumbnail-slot:hover {
+  border-color: var(--primary);
+}
+
+.thumbnail-slot.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
 }

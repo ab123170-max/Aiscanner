@@ -83,44 +83,89 @@ async function generateContentWithRetryAndFallback(ai, params) {
   throw lastError || new Error("All attempts and fallback models exhausted");
 }
 
-// REST API for AI Product analysis
+// REST API for Multi-Shot AI Product Analysis
 app.post('/api/analyze-product', async (req, res) => {
   try {
-    const { image, mimeType } = req.body;
-    if (!image) {
+    const { image, mimeType, images } = req.body;
+    
+    // Support either single image or array of images
+    let imageList = [];
+    if (images && Array.isArray(images)) {
+      imageList = images;
+    } else if (image) {
+      imageList = [{ data: image, mimeType: mimeType || 'image/jpeg', label: 'Single Shot' }];
+    }
+
+    if (imageList.length === 0) {
       return res.status(400).json({ error: "Missing image data" });
     }
 
     const ai = getAIClient();
 
-    const imagePart = {
-      inlineData: {
-        mimeType: mimeType || 'image/jpeg',
-        data: image
-      }
-    };
+    // Convert base64 images into Gemini format parts
+    const imageParts = imageList.map((img, idx) => {
+      const rawBase64 = img.data.includes('base64,') 
+        ? img.data.split('base64,')[1] 
+        : img.data;
+      
+      return {
+        inlineData: {
+          mimeType: img.mimeType || 'image/jpeg',
+          data: rawBase64
+        }
+      };
+    });
 
-    const promptText = `Analyze the provided product package image. Carefully extract the following fields. Do NOT guess or invent data. If any field is not clearly visible or legible, return null for it.
+    // Detailed description of each shot to pass to the model
+    const shotDetails = imageList.map((img, idx) => {
+      return `Image ${idx + 1}: Labelled as "${img.label || 'Unknown Shot'}"`;
+    }).join('\n');
 
-Fields to extract:
-- product_name: Full name of the product
-- brand: Manufacturer or brand name
-- barcode: The text digits of the barcode if visible
-- category: Product category (e.g., Food, Beverage, Cosmetic, Medicine, Electronics, Household, etc.)
-- mrp: Maximum Retail Price if printed (e.g. "Rs. 50", "$1.99")
-- selling_price: Any specific discounted or selling price if printed
-- quantity: Numerical quantity (e.g. 500, 1.5, 10)
-- unit: Measurement unit (e.g. ml, g, kg, L, pcs)
-- manufacture_date: Manufacture date as readable text or ISO format
-- expiry_date: Expiry date as readable text or ISO format
-- batch_number: Batch or Lot number
-- ingredients: List of ingredients in an array (if food/beverage/cosmetic/medicine). Leave empty array if none.
-- confidence: Your confidence score between 0 and 100 for this extraction as an integer.
+    const promptText = `You are a high-precision, industrial product intelligence scanner.
+Analyze the provided product package images as a SINGLE set belonging to ONE product. Do NOT treat them as separate or unrelated products.
 
-If the product is not identifiable or the image is unreadable, set product_found to false. Otherwise, set product_found to true.`;
+Details of the images uploaded:
+${shotDetails}
+
+Carefully extract and merge information across all photos.
+Guidelines for extraction:
+1. Compare information across all images to form a single, cohesive, consolidated report.
+2. If the same field appears in multiple images, prefer the clearer and more detailed text.
+3. Resolve duplicate information.
+4. If there are contradictions or conflicts between images (e.g. different expiry dates, or conflicting nutrition facts):
+   - Prefer the clearest readable info.
+   - If unresolved, mark it in the 'conflicting_fields' array, and return the most reliable readable value in the field.
+5. Do NOT guess or fabricate missing information. If a field is not clearly visible or readable in any image, return null.
+6. Barcode digits must only be returned if they are clearly readable. Never guess barcode digits.
+
+Extract the following fields strictly matching the JSON schema:
+- product_found: Boolean indicating if a product is clearly identified in the pictures.
+- product_name: Full product name.
+- brand: Manufacturer or brand name.
+- barcode: Exact barcode text digits (ONLY if clearly legible).
+- category: Food, Beverage, Cosmetic, Medicine, Electronics, Household, General, etc.
+- product_description: A brief paragraph describing the product's attributes, marketing claims, and visual properties as seen.
+- mrp: Maximum Retail Price (e.g. "$1.99", "Rs. 250").
+- selling_price: Direct discounted or retail selling price if printed.
+- quantity: Numerical quantity value only (e.g., 500, 1.5, 12).
+- unit: Measurement unit (e.g., ml, g, kg, L, oz, count).
+- manufacture_date: Manufacture date as readable text or ISO format.
+- expiry_date: Expiry date as readable text or ISO format.
+- best_before: Best before details if printed.
+- batch_number: Batch, Lot, or SKU index.
+- manufacturer: Full manufacturer company name.
+- country_of_origin: Country where manufactured (e.g. "Made in India", "Product of USA").
+- ingredients: Array of strings listing ingredients (if applicable). Leave as empty array if not.
+- allergens: Allergen warnings (e.g. "Contains nuts", "Gluten-free").
+- nutrition_information: Key nutrition info (calories, fats, proteins, etc.) as a summary.
+- storage_instructions: Specific storage directives (e.g. "Keep refrigerated", "Store in cool dry place").
+- warnings: Any safety warnings or side effects.
+- confidence: Your overall confidence score (0-100) based on image quality and data legibility.
+- information_sources: For every field extracted, specify which image (e.g. "Image 1: Front", "Image 3: Side") verified it.
+- conflicting_fields: List any fields where different images showed conflicting or contradicting information, along with a description of the conflict.`;
 
     const response = await generateContentWithRetryAndFallback(ai, {
-      contents: [imagePart, promptText],
+      contents: [...imageParts, promptText],
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -131,20 +176,50 @@ If the product is not identifiable or the image is unreadable, set product_found
             brand: { type: Type.STRING, nullable: true },
             barcode: { type: Type.STRING, nullable: true },
             category: { type: Type.STRING, nullable: true },
+            product_description: { type: Type.STRING, nullable: true },
             mrp: { type: Type.STRING, nullable: true },
             selling_price: { type: Type.STRING, nullable: true },
             quantity: { type: Type.STRING, nullable: true },
             unit: { type: Type.STRING, nullable: true },
             manufacture_date: { type: Type.STRING, nullable: true },
             expiry_date: { type: Type.STRING, nullable: true },
+            best_before: { type: Type.STRING, nullable: true },
             batch_number: { type: Type.STRING, nullable: true },
+            manufacturer: { type: Type.STRING, nullable: true },
+            country_of_origin: { type: Type.STRING, nullable: true },
             ingredients: {
               type: Type.ARRAY,
               items: { type: Type.STRING }
             },
-            confidence: { type: Type.INTEGER }
+            allergens: { type: Type.STRING, nullable: true },
+            nutrition_information: { type: Type.STRING, nullable: true },
+            storage_instructions: { type: Type.STRING, nullable: true },
+            warnings: { type: Type.STRING, nullable: true },
+            confidence: { type: Type.INTEGER },
+            information_sources: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  field: { type: Type.STRING },
+                  source: { type: Type.STRING }
+                },
+                required: ["field", "source"]
+              }
+            },
+            conflicting_fields: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  field: { type: Type.STRING },
+                  description: { type: Type.STRING }
+                },
+                required: ["field", "description"]
+              }
+            }
           },
-          required: ["product_found"]
+          required: ["product_found", "confidence"]
         }
       }
     });

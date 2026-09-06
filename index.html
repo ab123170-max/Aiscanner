@@ -2,516 +2,992 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Product Scanner Terminal</title>
-    <meta name="description" content="Precision shelf-life tracking tool powered by real-time hardware decoding and multimodal AI Vision." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>AI Product Scanner</title>
+    <meta name="description" content="Sleek, consumer-friendly product scanning and 3D reconstruction terminal." />
     <!-- ZXing Barcode Library via CDN -->
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <!-- Lucide Icons Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
-  <body class="bg-cyber-darker text-cyber-text font-mono min-h-screen">
+  <body class="bg-cyber-darker text-cyber-text min-h-screen pb-24 antialiased selection:bg-indigo-100 transition-colors duration-300">
 
-    <div class="flex min-h-screen">
-      
-      <!-- ============================================== -->
-      <!-- LEFT SIDE NAVIGATION STRIP (SPECIALIST ASIDE)  -->
-      <!-- ============================================== -->
-      <aside class="hidden md:flex w-20 bg-cyber-dark border-r border-cyber-border flex-col items-center py-6 gap-8 flex-shrink-0">
-        <!-- Brand Tech Symbol -->
-        <div class="w-12 h-12 bg-cyber-element rounded flex items-center justify-center border border-cyber-border">
-          <div class="w-5 h-5 border-2 border-cyber-cyan rounded-sm flex items-center justify-center relative">
-            <span class="absolute w-1 h-1 bg-cyber-green rounded-full"></span>
+    <!-- Onboarding First-time User Overlay (Instruction 15) -->
+    <div id="onboarding-overlay" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-cyber-dark text-cyber-text border border-cyber-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-6 flex flex-col justify-between max-h-[90vh] overflow-y-auto">
+        
+        <!-- Onboarding Header -->
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 mb-2">
+            <i data-lucide="sparkles" class="w-6 h-6"></i>
+          </div>
+          <h2 id="ob-title" class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome to AI Scanner</h2>
+          <p id="ob-subtitle" class="text-xs text-cyber-muted px-2">Your friendly companion to scan products, generate 3D views, and manage shelf items.</p>
+        </div>
+
+        <!-- Onboarding Steps Content -->
+        <div class="flex-1 py-4">
+          
+          <!-- Slide 1: Choose Language (Instruction 13) -->
+          <div id="ob-step-lang" class="space-y-4">
+            <h3 id="ob-lang-title" class="text-sm font-bold text-slate-800 dark:text-slate-200">Choose your language</h3>
+            <div class="grid grid-cols-1 gap-3">
+              <button onclick="app.setOnboardingLanguage('en')" id="ob-lang-en" class="flex items-center justify-between p-4 border border-indigo-200 bg-indigo-50/40 text-left rounded-xl transition duration-200 hover:border-indigo-400">
+                <span class="font-medium text-sm">English</span>
+                <i data-lucide="check" class="w-4 h-4 text-indigo-600"></i>
+              </button>
+              <button onclick="app.setOnboardingLanguage('ne')" id="ob-lang-ne" class="flex items-center justify-between p-4 border border-cyber-border text-left rounded-xl transition duration-200 hover:border-indigo-400">
+                <span class="font-medium text-sm">नेपाली (Nepali)</span>
+                <i data-lucide="check" class="w-4 h-4 text-indigo-600 hidden"></i>
+              </button>
+              <button onclick="app.setOnboardingLanguage('hi')" id="ob-lang-hi" class="flex items-center justify-between p-4 border border-cyber-border text-left rounded-xl transition duration-200 hover:border-indigo-400">
+                <span class="font-medium text-sm">हिन्दी (Hindi)</span>
+                <i data-lucide="check" class="w-4 h-4 text-indigo-600 hidden"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide 2: Choose Currency (Instruction 14) -->
+          <div id="ob-step-curr" class="hidden space-y-4">
+            <h3 id="ob-curr-title" class="text-sm font-bold text-slate-800 dark:text-slate-200">Choose your display currency</h3>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="app.setOnboardingCurrency('NPR')" id="ob-curr-NPR" class="p-3 border border-indigo-200 bg-indigo-50/40 rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">NPR</span>
+                <span class="text-[9px] text-cyber-muted">नेपाली रुपैयाँ</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('INR')" id="ob-curr-INR" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">INR</span>
+                <span class="text-[9px] text-cyber-muted">Indian Rupee</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('USD')" id="ob-curr-USD" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">USD</span>
+                <span class="text-[9px] text-cyber-muted">US Dollar</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('EUR')" id="ob-curr-EUR" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">EUR</span>
+                <span class="text-[9px] text-cyber-muted">Euro</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('GBP')" id="ob-curr-GBP" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">GBP</span>
+                <span class="text-[9px] text-cyber-muted">British Pound</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('AED')" id="ob-curr-AED" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">AED</span>
+                <span class="text-[9px] text-cyber-muted">UAE Dirham</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('AUD')" id="ob-curr-AUD" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">AUD</span>
+                <span class="text-[9px] text-cyber-muted">Australian $</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('CAD')" id="ob-curr-CAD" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">CAD</span>
+                <span class="text-[9px] text-cyber-muted">Canadian $</span>
+              </button>
+              <button onclick="app.setOnboardingCurrency('JPY')" id="ob-curr-JPY" class="p-3 border border-cyber-border rounded-xl text-center transition hover:border-indigo-400">
+                <span class="block text-xs font-bold">JPY</span>
+                <span class="text-[9px] text-cyber-muted">Japanese Yen</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide 3: Ready -->
+          <div id="ob-step-ready" class="hidden text-center space-y-4 py-4">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 text-emerald-600">
+              <i data-lucide="check-circle" class="w-8 h-8"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 id="ob-ready-title" class="text-md font-bold text-slate-800 dark:text-slate-200">You're all set!</h4>
+              <p id="ob-ready-desc" class="text-xs text-cyber-muted">Now simply point your camera at any product to begin instant scanning.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Onboarding Action Control Footer -->
+        <div class="flex items-center justify-between pt-4 border-t border-cyber-border">
+          <button onclick="app.skipOnboarding()" id="ob-btn-skip" class="text-xs font-medium text-cyber-muted hover:text-slate-900 dark:hover:text-white transition py-2">
+            Skip Onboarding
+          </button>
+          
+          <div class="flex gap-2">
+            <button onclick="app.prevOnboardingStep()" id="ob-btn-back" class="hidden px-4 py-2 bg-cyber-element text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-cyber-border transition">
+              Back
+            </button>
+            <button onclick="app.nextOnboardingStep()" id="ob-btn-next" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-100 dark:shadow-none transition flex items-center gap-1.5">
+              <span id="ob-btn-next-text">Next</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
           </div>
         </div>
 
-        <!-- Navigation Buttons -->
-        <nav class="flex flex-col gap-6 flex-1">
-          <button onclick="app.switchView('dashboard')" title="Diagnostic Dashboard" class="p-3 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 hover:bg-cyber-cyan/25 transition flex items-center justify-center">
-            <i data-lucide="layout-grid" class="w-5 h-5"></i>
-          </button>
-          <button onclick="app.openScanner()" title="Initiate Laser Camera Scanner" class="p-3 rounded text-cyber-muted hover:text-cyber-cyan hover:bg-cyber-element transition flex items-center justify-center">
-            <i data-lucide="scan-barcode" class="w-5 h-5"></i>
-          </button>
-          <button onclick="app.triggerTestScan()" title="Trigger Calibration Mock" class="p-3 rounded text-cyber-muted hover:text-cyber-green hover:bg-cyber-element transition flex items-center justify-center">
-            <i data-lucide="flask" class="w-5 h-5"></i>
-          </button>
-        </nav>
+      </div>
+    </div>
 
-        <div class="mt-auto p-3 text-cyber-muted flex flex-col items-center gap-4">
-          <span class="text-[8px] font-mono tracking-widest uppercase rotate-90 my-2 text-cyber-cyan">ONLINE</span>
-          <i data-lucide="cpu" class="w-5 h-5"></i>
+    <!-- Header Consumer Nav Bar (Instruction 1) -->
+    <header class="h-16 border-b border-cyber-border px-4 md:px-8 flex items-center justify-between bg-cyber-dark sticky top-0 z-40 transition-colors">
+      <div class="flex items-center gap-3">
+        <div class="bg-indigo-50 dark:bg-indigo-950/40 p-2 rounded-xl text-cyber-cyan shadow-sm">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
-      </aside>
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="app-brand-title" class="text-sm font-bold tracking-tight text-slate-800 dark:text-white">AI Scanner</span>
+            <span class="text-[9px] bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 px-2 py-0.5 rounded-full font-bold">Pro</span>
+          </div>
+          <p id="app-brand-subtitle" class="text-[10px] text-cyber-muted font-medium hidden sm:block">Consumer Edition</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3 items-center">
+        <!-- Quick setup state indicator badges -->
+        <span id="header-lang-badge" class="text-[10px] font-bold bg-cyber-element text-cyber-muted px-2 py-1 rounded-lg uppercase">EN</span>
+        <span id="header-curr-badge" class="text-[10px] font-bold bg-cyber-element text-cyber-muted px-2 py-1 rounded-lg">USD</span>
+        <div id="connection-indicator" class="flex items-center gap-1.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 px-3 py-1 rounded-lg">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="header-connection-text">VISION LIVE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dynamic View Content Workspace -->
+    <main class="p-4 md:p-6 space-y-6 max-w-5xl w-full mx-auto">
 
       <!-- ============================================== -->
-      <!-- MAIN DIAGNOSTIC WORKSPACE FRAME               -->
+      <!-- TAB 1: HOME (view-dashboard)                  -->
       <!-- ============================================== -->
-      <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <section id="view-dashboard" class="space-y-6">
         
-        <!-- Header Tech Bar -->
-        <header class="h-16 border-b border-cyber-border px-4 md:px-8 flex items-center justify-between bg-cyber-dark sticky top-0 z-40">
-          <div class="flex items-center gap-3">
-            <div class="md:hidden bg-cyber-element border border-cyber-border p-1.5 rounded text-cyber-cyan">
-              <i data-lucide="scan-barcode" class="w-5 h-5"></i>
+        <!-- Premium Simple Consumer Hero (Instruction 4) -->
+        <div class="bg-cyber-dark border border-cyber-border p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm transition-colors">
+          <div class="space-y-3 max-w-xl">
+            <h2 id="home-hero-title" class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+              Scan products, generate interactive 3D views & check shelf expiration.
+            </h2>
+            <p id="home-hero-subtitle" class="text-cyber-muted text-xs leading-relaxed max-w-md">
+              A beautifully simple companion that translates packaging details into 3D objects and expiration tracks in real-time.
+            </p>
+          </div>
+          <div class="flex-shrink-0 flex flex-col sm:flex-row gap-3">
+            <button onclick="app.switchTab('scan')" id="btn-hero-scan" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 dark:shadow-none">
+              <i data-lucide="scan" class="w-4 h-4"></i>
+              <span id="btn-hero-scan-text">Scan Product</span>
+            </button>
+            <button onclick="app.startFastScanMode()" id="btn-hero-fast-scan" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 dark:shadow-none">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span>Fast Scan Mode</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Secondary shortcuts indicators -->
+        <div class="grid grid-cols-3 gap-3">
+          <button onclick="app.switchTab('products')" class="bg-cyber-dark border border-cyber-border hover:border-indigo-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 text-center transition shadow-sm hover:shadow">
+            <div class="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 flex items-center justify-center">
+              <i data-lucide="package" class="w-5 h-5"></i>
+            </div>
+            <span id="shortcut-products" class="text-xs font-bold text-slate-800 dark:text-slate-200">Products</span>
+          </button>
+          <button onclick="app.switchTab('products')" class="bg-cyber-dark border border-cyber-border hover:border-indigo-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 text-center transition shadow-sm hover:shadow">
+            <div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="history" class="w-5 h-5"></i>
+            </div>
+            <span id="shortcut-history" class="text-xs font-bold text-slate-800 dark:text-slate-200">Scans</span>
+          </button>
+          <button onclick="app.switchTab('settings')" class="bg-cyber-dark border border-cyber-border hover:border-indigo-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 text-center transition shadow-sm hover:shadow">
+            <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+              <i data-lucide="sliders" class="w-5 h-5"></i>
+            </div>
+            <span id="shortcut-settings" class="text-xs font-bold text-slate-800 dark:text-slate-200">Settings</span>
+          </button>
+        </div>
+
+        <!-- Programmatic Consumer Metrics (Instruction 4) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-cyber-dark border border-cyber-border p-4 rounded-xl flex items-center gap-4 transition-colors">
+            <div class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 p-3 rounded-xl border border-indigo-100 dark:border-transparent">
+              <i data-lucide="box" class="w-5 h-5"></i>
             </div>
             <div>
+              <p id="stat-lbl-total" class="text-[10px] text-cyber-muted font-bold uppercase tracking-wider">TOTAL LOGGED</p>
+              <h3 id="stat-total" class="text-lg font-extrabold text-slate-800 dark:text-white">0</h3>
+            </div>
+          </div>
+          <div class="bg-cyber-dark border border-cyber-border p-4 rounded-xl flex items-center gap-4 transition-colors">
+            <div class="bg-amber-50 dark:bg-amber-950/40 text-amber-600 p-3 rounded-xl border border-amber-100 dark:border-transparent">
+              <i data-lucide="hourglass" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p id="stat-lbl-expiring" class="text-[10px] text-cyber-muted font-bold uppercase tracking-wider">EXPIRING SOON</p>
+              <h3 id="stat-expiring" class="text-lg font-extrabold text-amber-600">0</h3>
+            </div>
+          </div>
+          <div class="bg-cyber-dark border border-cyber-border p-4 rounded-xl flex items-center gap-4 transition-colors">
+            <div class="bg-rose-50 dark:bg-rose-950/40 text-rose-600 p-3 rounded-xl border border-rose-100 dark:border-transparent">
+              <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p id="stat-lbl-expired" class="text-[10px] text-cyber-muted font-bold uppercase tracking-wider">EXPIRED COUNT</p>
+              <h3 id="stat-expired" class="text-lg font-extrabold text-rose-600">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Activity Panel -->
+        <div class="bg-cyber-dark border border-cyber-border p-6 rounded-2xl space-y-4 shadow-sm transition-colors">
+          <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider border-b border-cyber-border pb-2 flex justify-between items-center">
+            <span id="recent-activity-title">RECENT STOCK ACTIVITY</span>
+            <button onclick="app.switchTab('products')" id="recent-activity-viewall" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">View All</button>
+          </h3>
+          <div id="recent-activity-list" class="divide-y divide-cyber-border/60 text-xs text-cyber-muted space-y-2">
+            <!-- Programmatically rendered activity -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: SIMPLE SCAN FLOW (view-scanner)          -->
+      <!-- ============================================== -->
+      <section id="view-scanner" class="hidden max-w-md mx-auto space-y-6">
+        
+        <!-- STEP-BY-STEP CAMERA VIEWPORT CARD (Instruction 5) -->
+        <div id="scanner-capture-card" class="bg-cyber-dark border border-cyber-border rounded-2xl overflow-hidden shadow-2xl flex flex-col transition-colors">
+          
+          <div class="p-4 border-b border-cyber-border flex justify-between items-center bg-slate-50 dark:bg-slate-900/40">
+            <div class="flex items-center gap-2">
+              <span id="scan-step-number" class="bg-indigo-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">1/5</span>
+              <h3 id="scan-step-title" class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">CAPTURE THE FRONT</h3>
+            </div>
+            <button onclick="app.toggleCameraStream()" class="text-cyber-muted hover:text-slate-800 dark:hover:text-white p-1.5 bg-cyber-element rounded-lg transition">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Video Camera Viewport wrapper (Instruction 5) -->
+          <div class="relative w-full aspect-square bg-black overflow-hidden border-b border-cyber-border flex items-center justify-center">
+            <video id="scanner-video" class="w-full h-full object-cover" playsinline muted></video>
+            
+            <!-- Elegant camera guidelines framing overlay -->
+            <div class="absolute inset-0 border-2 border-white/20 rounded-2xl m-8 pointer-events-none flex items-center justify-center">
+              <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-indigo-500 rounded-tl-xl"></div>
+              <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-indigo-500 rounded-tr-xl"></div>
+              <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-indigo-500 rounded-bl-xl"></div>
+              <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-indigo-500 rounded-br-xl"></div>
+              
+              <!-- Subtle laser scanner line effect -->
+              <div id="scanner-active-laser" class="scan-line bg-indigo-500/20 shadow-[0_0_12px_#6366f1] h-1"></div>
+            </div>
+
+            <!-- Smart capture assistant floating feedback label (Instruction 6) -->
+            <div id="capture-assistant-status" class="absolute bottom-16 bg-slate-900/90 text-[10px] font-bold text-indigo-300 border border-slate-700 px-3 py-1.5 rounded-full backdrop-blur uppercase tracking-wider text-center">
+              Looks good ✓
+            </div>
+
+            <!-- Barcode notifier overlay -->
+            <div class="absolute bottom-3 left-3 right-3 bg-slate-900/95 rounded-xl border border-slate-700/80 p-2.5 flex items-center justify-between text-[10px]">
               <div class="flex items-center gap-2">
-                <span class="text-xs md:text-sm font-bold tracking-widest text-cyber-cyan uppercase">Scanner Terminal</span>
-                <span class="text-[9px] bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 px-1.5 py-0.5 rounded font-mono">v2.4.0</span>
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                <span id="barcode-status-text" class="font-bold text-slate-200 uppercase tracking-wide">BARCODE DECODER ACTIVE</span>
               </div>
-              <p class="text-[10px] text-cyber-muted hidden sm:block font-mono">Hardware Interface: DECODING_READY_256</p>
+              <span id="barcode-result-badge" class="hidden bg-emerald-500 text-white font-bold px-2 py-0.5 rounded-full text-[9px]"></span>
             </div>
           </div>
 
-          <div class="flex gap-4 items-center">
-            <div id="connection-indicator" class="flex items-center gap-2 text-[10px] font-mono bg-cyber-green/10 text-cyber-green border border-cyber-green/30 px-2.5 py-1 rounded">
-              <span class="w-1.5 h-1.5 rounded-full bg-cyber-green animate-pulse"></span>
-              <span>CAMERA & VISION LIVE</span>
+          <!-- Description, step numbers and Snap button (Instruction 5 & 7) -->
+          <div class="p-6 space-y-4 text-center">
+            <p id="scan-step-instruction" class="text-xs text-cyber-muted font-medium leading-relaxed">
+              Place the product inside the frame
+            </p>
+
+            <!-- Large circular button styled elegantly -->
+            <div class="flex flex-col items-center justify-center py-2">
+              <button id="btn-capture" onclick="app.captureGuidedShot()" class="w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all border-4 border-white dark:border-slate-800">
+                <i data-lucide="camera" class="w-6 h-6"></i>
+              </button>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-cyber-muted mt-2">Capture</span>
+            </div>
+
+            <button onclick="app.startFastScanMode()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 mb-2 shadow-md">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span>Switch to Fast Scan Mode</span>
+            </button>
+
+            <div class="flex gap-2">
+              <button onclick="app.skipGuidedStep()" class="flex-1 bg-cyber-element hover:bg-cyber-border text-slate-700 dark:text-slate-300 font-bold py-3 rounded-xl transition text-[11px] uppercase tracking-wide">
+                Skip Step
+              </button>
+              <button onclick="app.cancelScanning()" class="flex-1 bg-cyber-element hover:bg-cyber-border text-rose-500 font-bold py-3 rounded-xl transition text-[11px] uppercase tracking-wide">
+                Cancel
+              </button>
             </div>
           </div>
-        </header>
 
-        <!-- Dynamic View Content Workspace -->
-        <main class="flex-grow p-4 md:p-6 space-y-6 max-w-7xl w-full mx-auto">
+        </div>
 
-          <!-- ============================================== -->
-          <!-- VIEW 1: DASHBOARD / PRODUCTS HISTORY -->
-          <!-- ============================================== -->
-          <section id="view-dashboard" class="space-y-6">
+        <!-- PHOTO REVIEW GRID CONTAINER (Instruction 7) -->
+        <div id="scanner-review-card" class="hidden bg-cyber-dark border border-cyber-border rounded-2xl p-6 space-y-6 shadow-2xl transition-colors">
+          <div class="border-b border-cyber-border pb-3">
+            <h3 id="review-gallery-title" class="text-sm font-bold tracking-tight text-slate-800 dark:text-white uppercase">REVIEW ACQUIRED PHOTOS</h3>
+            <p id="review-gallery-subtitle" class="text-[10px] text-cyber-muted uppercase tracking-wide mt-1">Review angles before starting Gemini Vision analysis.</p>
+          </div>
+
+          <!-- Photo grid list -->
+          <div id="review-gallery-grid" class="grid grid-cols-2 gap-4">
+            <!-- Rendered programmatically -->
+          </div>
+
+          <!-- Actions -->
+          <div class="space-y-3 pt-2">
+            <button onclick="app.startGuidedScanning()" class="w-full bg-cyber-element border border-cyber-border hover:bg-cyber-border text-indigo-600 dark:text-indigo-400 font-bold py-3 rounded-xl transition text-xs uppercase flex items-center justify-center gap-2">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span id="review-add-angle">+ Add Photo</span>
+            </button>
             
-            <!-- Calibration Dashboard Banner -->
-            <div class="bg-cyber-dark border border-cyber-border p-6 rounded relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div class="absolute right-0 top-0 opacity-5 pointer-events-none">
-                <i data-lucide="binary" class="w-64 h-64 text-cyber-cyan"></i>
-              </div>
-              <div class="space-y-3 max-w-2xl">
-                <div class="inline-flex bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 rounded px-2.5 py-0.5 text-[10px] uppercase tracking-wider font-bold">
-                  Shelf-Life Precision Diagnostics
-                </div>
-                <h2 class="text-xl md:text-2xl font-bold tracking-tight text-cyber-text leading-tight uppercase">
-                  Analyze products, read barcodes, & extract ingredients.
-                </h2>
-                <p class="text-cyber-muted text-xs leading-relaxed max-w-xl">
-                  Align standard barcode formats with the hardware capture engine, or initiate a snap capture to trigger high-fidelity multimodal OCR for chemical compositions and dates.
-                </p>
-              </div>
-              <div class="flex flex-col sm:flex-row md:flex-col gap-2.5 flex-shrink-0">
-                <button onclick="app.openScanner()" class="bg-cyber-cyan hover:brightness-110 text-cyber-darker font-bold text-xs uppercase px-5 py-3 rounded transition duration-200 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,240,255,0.25)]">
-                  <i data-lucide="scan" class="w-4 h-4"></i>
-                  Start Camera Scanner
-                </button>
-                <button onclick="app.triggerTestScan()" class="bg-cyber-element hover:bg-cyber-border text-cyber-cyan border border-cyber-cyan/30 font-bold text-xs uppercase px-5 py-3 rounded transition duration-200 flex items-center justify-center gap-2">
-                  <i data-lucide="shield-check" class="w-4 h-4"></i>
-                  Calibration Sandbox
-                </button>
-              </div>
-            </div>
+            <button id="btn-analyze-multishot" onclick="app.runMultiImageAnalysis()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-lg shadow-indigo-100 dark:shadow-none">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+              <span id="review-analyze-btn">Analyze Product</span>
+            </button>
 
-            <!-- Dynamic System Metrics Readout -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
-              <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex items-center gap-4 relative">
-                <div class="absolute top-2 right-2 text-[9px] text-cyber-muted font-bold">REG_01</div>
-                <div class="bg-cyber-cyan/10 text-cyber-cyan p-2.5 rounded border border-cyber-cyan/30">
-                  <i data-lucide="folder-git" class="w-5 h-5"></i>
-                </div>
-                <div>
-                  <p class="text-[10px] text-cyber-muted uppercase tracking-wider">TOTAL LOGGED</p>
-                  <h3 id="stat-total" class="text-xl font-bold text-cyber-cyan">0</h3>
-                </div>
-              </div>
-              <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex items-center gap-4 relative">
-                <div class="absolute top-2 right-2 text-[9px] text-cyber-muted font-bold">REG_02</div>
-                <div class="bg-cyber-orange/10 text-cyber-orange p-2.5 rounded border border-cyber-orange/30">
-                  <i data-lucide="hourglass" class="w-5 h-5"></i>
-                </div>
-                <div>
-                  <p class="text-[10px] text-cyber-muted uppercase tracking-wider">EXPIRING (&lt;30D)</p>
-                  <h3 id="stat-expiring" class="text-xl font-bold text-cyber-orange">0</h3>
-                </div>
-              </div>
-              <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex items-center gap-4 relative">
-                <div class="absolute top-2 right-2 text-[9px] text-cyber-muted font-bold">REG_03</div>
-                <div class="bg-cyber-red/10 text-cyber-red p-2.5 rounded border border-cyber-red/30">
-                  <i data-lucide="alert-octagon" class="w-5 h-5"></i>
-                </div>
-                <div>
-                  <p class="text-[10px] text-cyber-muted uppercase tracking-wider">EXPIRED COUNT</p>
-                  <h3 id="stat-expired" class="text-xl font-bold text-cyber-red">0</h3>
-                </div>
-              </div>
-            </div>
+            <button onclick="app.cancelScanning()" class="w-full text-center text-[10px] text-cyber-muted hover:text-rose-500 py-1.5 uppercase transition font-bold">
+              Discard Captured Photos
+            </button>
+          </div>
+        </div>
 
-            <!-- System Filters & Diagnostics Controller -->
-            <div class="bg-cyber-dark border border-cyber-border p-4 rounded flex flex-col md:flex-row justify-between items-center gap-4">
-              <div class="w-full md:max-w-md relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-cyber-muted">
-                  <i data-lucide="search" class="w-4 h-4"></i>
-                </span>
-                <input type="text" id="search-input" onkeyup="app.handleSearch()" placeholder="Search registry database..." class="w-full bg-cyber-element border border-cyber-border text-cyber-text rounded py-2 pl-9 pr-4 text-xs font-mono" />
-              </div>
-              
-              <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                <button onclick="app.setFilter('all')" id="filter-all" class="flex-grow sm:flex-grow-0 bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 px-4 py-2 rounded text-xs transition uppercase font-bold tracking-tight">
-                  ALL ENTRIES
-                </button>
-                <button onclick="app.setFilter('expiring')" id="filter-expiring" class="flex-grow sm:flex-grow-0 hover:bg-cyber-element text-cyber-muted font-bold px-4 py-2 rounded text-xs transition border border-transparent uppercase tracking-tight">
-                  EXPIRING SOON
-                </button>
-                <button onclick="app.setFilter('expired')" id="filter-expired" class="flex-grow sm:flex-grow-0 hover:bg-cyber-element text-cyber-muted font-bold px-4 py-2 rounded text-xs transition border border-transparent uppercase tracking-tight">
-                  EXPIRED LIST
-                </button>
-              </div>
-            </div>
+      </section>
 
-            <!-- Dynamic Product Matrix -->
-            <div id="history-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <!-- Rendered programmatically -->
-            </div>
+      <!-- ============================================== -->
+      <!-- TAB 3: PRODUCTS DATABASE LIST (view-products)  -->
+      <!-- ============================================== -->
+      <section id="view-products" class="hidden space-y-6">
+        
+        <!-- Filters Header (Instruction 11) -->
+        <div class="bg-cyber-dark border border-cyber-border p-4 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 transition-colors shadow-sm">
+          <div class="w-full md:max-w-md relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-cyber-muted">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="search-input" onkeyup="app.handleSearch()" placeholder="Search registry database..." class="w-full bg-cyber-element border border-cyber-border text-cyber-text rounded-xl py-2.5 pl-9 pr-4 text-xs" />
+          </div>
+          
+          <div class="flex flex-wrap gap-2 w-full md:w-auto">
+            <button onclick="app.setFilter('all')" id="filter-all" class="flex-grow sm:flex-grow-0 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-transparent px-4 py-2.5 rounded-xl text-xs transition uppercase font-bold tracking-tight">
+              ALL ENTRIES
+            </button>
+            <button onclick="app.setFilter('expiring')" id="filter-expiring" class="flex-grow sm:flex-grow-0 hover:bg-cyber-element text-cyber-muted font-bold px-4 py-2.5 rounded-xl text-xs transition border border-transparent uppercase tracking-tight">
+              EXPIRING SOON
+            </button>
+            <button onclick="app.setFilter('expired')" id="filter-expired" class="flex-grow sm:flex-grow-0 hover:bg-cyber-element text-cyber-muted font-bold px-4 py-2.5 rounded-xl text-xs transition border border-transparent uppercase tracking-tight">
+              EXPIRED LIST
+            </button>
+          </div>
+        </div>
 
-            <!-- Empty Database Diagnostics -->
-            <div id="empty-state" class="bg-cyber-dark border border-dashed border-cyber-border p-12 rounded flex flex-col items-center text-center max-w-xl mx-auto space-y-4">
-              <div class="bg-cyber-cyan/10 text-cyber-cyan p-4 rounded border border-cyber-cyan/30">
-                <i data-lucide="scan-line" class="w-8 h-8"></i>
-              </div>
-              <div class="space-y-1">
-                <h3 class="text-sm font-bold text-cyber-text uppercase tracking-wider">Registry database empty</h3>
-                <p class="text-cyber-muted text-xs max-w-xs leading-normal">
-                  No products are currently cataloged. Boot the hardware scanner below to index local stock.
-                </p>
-              </div>
-              <button onclick="app.openScanner()" class="bg-cyber-cyan text-cyber-darker hover:brightness-110 font-bold text-xs uppercase px-5 py-2.5 rounded transition shadow-[0_0_15px_rgba(0,240,255,0.25)]">
-                Initialize Scanner
-              </button>
-            </div>
+        <!-- Dynamic Product Grid (Instruction 11) -->
+        <div id="history-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Rendered programmatically -->
+        </div>
 
-          </section>
+        <!-- Empty Database Diagnostics (Instruction 21) -->
+        <div id="empty-state" class="bg-cyber-dark border border-dashed border-cyber-border p-12 rounded-2xl flex flex-col items-center text-center max-w-xl mx-auto space-y-4 shadow-sm transition-colors">
+          <div class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 p-4 rounded-full">
+            <i data-lucide="scan-face" class="w-8 h-8"></i>
+          </div>
+          <div class="space-y-1">
+            <h3 id="empty-state-title" class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase">Registry database empty</h3>
+            <p id="empty-state-desc" class="text-cyber-muted text-xs max-w-xs leading-normal">
+              No products are currently cataloged. Boot the scanner to register local stock.
+            </p>
+          </div>
+          <button onclick="app.switchTab('scan')" id="empty-state-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase px-6 py-3 rounded-xl transition shadow-lg shadow-indigo-100 dark:shadow-none">
+            Scan Product
+          </button>
+        </div>
 
-          <!-- ============================================== -->
-          <!-- VIEW 2: HARDWARE LASER CAMERA SCANNER        -->
-          <!-- ============================================== -->
-          <section id="view-scanner" class="hidden max-w-lg mx-auto space-y-4">
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 4: SETTINGS / TEST WORKBENCH (view-settings)-->
+      <!-- ============================================== -->
+      <section id="view-settings" class="hidden max-w-lg mx-auto space-y-6">
+        
+        <div class="bg-cyber-dark border border-cyber-border p-6 rounded-2xl space-y-6 shadow-sm transition-colors">
+          <h3 id="settings-heading" class="text-xs font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 border-b border-cyber-border pb-3 flex items-center gap-2">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+            SYSTEM CONFIGURATION
+          </h3>
+
+          <!-- Onboarding controls inside settings -->
+          <div class="space-y-4">
             
-            <div class="flex justify-between items-center bg-cyber-dark border border-cyber-border p-2.5 rounded">
-              <button onclick="app.closeScanner()" class="bg-cyber-element border border-cyber-border hover:bg-cyber-border text-cyber-text p-2 rounded transition flex items-center justify-center">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              </button>
-              <h2 class="text-xs font-bold uppercase tracking-widest text-cyber-cyan">LASER CAPTURE TERMINAL</h2>
-              <button id="btn-camera-toggle" onclick="app.toggleCameraStream()" class="bg-cyber-element border border-cyber-border hover:bg-cyber-border text-cyber-text p-2 rounded transition flex items-center justify-center">
-                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-              </button>
+            <!-- Language Selector (Instruction 13) -->
+            <div class="space-y-1.5">
+              <label id="settings-lbl-lang" class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase block">App Language</label>
+              <select id="settings-lang-select" onchange="app.changeLanguage(this.value)" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl">
+                <option value="en">English</option>
+                <option value="ne">नेपाली (Nepali)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+              </select>
             </div>
 
-            <!-- Viewport Overlay with cyber crosshairs -->
-            <div class="scanner-viewport w-full aspect-[4/3] bg-black rounded relative overflow-hidden">
-              <video id="scanner-video" class="w-full h-full object-cover"></video>
+            <!-- Currency Selector (Instruction 14) -->
+            <div class="space-y-1.5">
+              <label id="settings-lbl-curr" class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase block">Display Currency</label>
+              <select id="settings-curr-select" onchange="app.changeCurrency(this.value)" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl">
+                <option value="NPR">NPR — नेपाली रुपैयाँ</option>
+                <option value="INR">INR — Indian Rupee</option>
+                <option value="USD">USD — US Dollar</option>
+                <option value="EUR">EUR — Euro</option>
+                <option value="GBP">GBP — British Pound</option>
+                <option value="AED">AED — UAE Dirham</option>
+                <option value="AUD">AUD — Australian Dollar</option>
+                <option value="CAD">CAD — Canadian Dollar</option>
+                <option value="JPY">JPY — Japanese Yen</option>
+              </select>
+            </div>
+
+            <!-- Theme Switcher (Instruction 16) -->
+            <div class="space-y-1.5">
+              <label id="settings-lbl-theme" class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase block">Appearance Theme</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="app.setTheme('light')" id="theme-btn-light" class="p-2 border border-cyber-border text-xs rounded-xl font-semibold hover:border-indigo-400">Light</button>
+                <button onclick="app.setTheme('dark')" id="theme-btn-dark" class="p-2 border border-cyber-border text-xs rounded-xl font-semibold hover:border-indigo-400">Dark</button>
+                <button onclick="app.setTheme('system')" id="theme-btn-system" class="p-2 border border-indigo-400 text-xs rounded-xl font-bold bg-indigo-50/40">System</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Sandbox Calibration Card -->
+          <div class="bg-slate-50 dark:bg-slate-900/30 border border-cyber-border p-4 rounded-xl space-y-3">
+            <h4 id="settings-lbl-test-title" class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">CALIBRATION WORKBENCH</h4>
+            <p id="settings-lbl-test-desc" class="text-[10px] text-cyber-muted leading-relaxed">
+              Trigger a test product injection to preview the results screen instantly without cameras.
+            </p>
+            <button onclick="app.triggerTestScan()" id="btn-settings-test" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase px-5 py-2.5 rounded-xl transition shadow-md">
+              Trigger Sandbox Test
+            </button>
+          </div>
+
+          <div class="pt-4 border-t border-cyber-border space-y-2 text-xs">
+            <h4 id="settings-lbl-status" class="text-xs font-bold text-cyber-muted uppercase">SYSTEM STATUS</h4>
+            <p class="text-[10px] text-cyber-muted leading-relaxed uppercase">
+              API Status: <span class="text-emerald-500 font-bold">ONLINE</span><br>
+              Web Interface: <span class="text-indigo-600 dark:text-indigo-400 font-bold">CONNECTED</span><br>
+              Luminosity detection loop: <span class="text-slate-800 dark:text-slate-200">ACTIVE (60HZ)</span>
+            </p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 5: DYNAMIC 3D PRODUCT MODEL REPORT         -->
+      <!-- ============================================== -->
+      <section id="view-verify" class="hidden space-y-6">
+
+        <!-- Control headers -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-cyber-dark border border-cyber-border p-4 rounded-2xl transition-colors shadow-sm">
+          <div>
+            <h2 id="verify-header-title" class="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">PRODUCT ANALYSIS & 3D RECONSTRUCTION</h2>
+            <p id="verify-header-subtitle" class="text-[10px] text-cyber-muted uppercase">Review generated 3D representations, OCR details, and save parameters.</p>
+          </div>
+          <div class="flex gap-2 w-full md:w-auto">
+            <button onclick="app.cancelVerification()" id="btn-verify-discard" class="flex-1 md:flex-none bg-cyber-element border border-cyber-border text-slate-700 dark:text-slate-300 font-bold text-xs uppercase px-4 py-3 rounded-xl transition">
+              DISCARD REPORT
+            </button>
+            <button onclick="app.saveVerification()" id="btn-verify-save" class="flex-1 md:flex-none bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase px-6 py-3 rounded-xl transition shadow-lg shadow-emerald-100 dark:shadow-none">
+              SAVE PRODUCT
+            </button>
+          </div>
+        </div>
+
+        <!-- Discrepancy Conflict Alert Banner (Instruction 24) -->
+        <div id="verify-conflict-banner" class="hidden flex items-start gap-3 bg-rose-50 text-rose-800 border border-rose-200/50 p-4 rounded-xl text-xs">
+          <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 text-rose-500 animate-pulse"></i>
+          <div>
+            <p id="conflict-banner-title" class="font-bold uppercase text-rose-600">CONFLICTING OBSERVATIONS DETECTED</p>
+            <p class="text-[10px] text-rose-700 mt-1 leading-relaxed" id="verify-conflict-desc">
+              Some details could not be parsed confidently from photos. Review values.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left Visualizer Side Box (Interactive Three.js 3D Viewport) (Instruction 9 & 10) -->
+          <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Real 3D Model Card Viewer -->
+            <div class="bg-cyber-dark border border-cyber-border p-4 rounded-2xl space-y-3 relative transition-colors shadow-sm">
+              <div class="flex justify-between items-center border-b border-cyber-border pb-2">
+                <h3 id="verify-3d-title" class="text-[10px] font-bold text-cyber-muted uppercase tracking-wider">3D PRODUCT MODEL</h3>
+                <span id="active-angle-label" class="text-[9px] bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 px-2 py-0.5 border border-indigo-100 dark:border-transparent rounded-full font-bold uppercase">INTERACTIVE VIEWPORT</span>
+              </div>
               
-              <!-- Crosshair Scanner Mask -->
-              <div class="scanner-overlay">
-                <div id="scan-target-area" class="scan-box">
-                  <div class="corner-bl"></div>
-                  <div class="corner-br"></div>
-                  <div class="scan-line"></div>
-                </div>
+              <!-- Core 3D Canvas / Photo comparison layout -->
+              <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-cyber-border flex items-center justify-center">
                 
-                <!-- Laser Barcode Diagnostic Readout overlay -->
-                <div class="absolute bottom-3 left-3 right-3 bg-cyber-darker/90 rounded border border-cyber-border p-3 flex items-center justify-between backdrop-blur">
-                  <div class="flex items-center gap-2">
-                    <span class="relative flex h-2 w-2">
-                      <span id="barcode-indicator-ring" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-orange opacity-75"></span>
-                      <span id="barcode-indicator" class="relative inline-flex rounded-full h-2 w-2 bg-cyber-orange"></span>
-                    </span>
-                    <span id="barcode-status-text" class="text-[10px] text-cyber-text font-bold font-mono tracking-wider">LASER: DECODING...</span>
-                  </div>
-                  <div id="barcode-result-badge" class="hidden text-[9px] font-mono bg-cyber-green text-cyber-darker font-bold px-1.5 py-0.5 rounded uppercase">
-                    EAN-13
-                  </div>
+                <!-- Real Three.js Canvas Container -->
+                <div id="three-3d-canvas-container" class="absolute inset-0 w-full h-full z-10 transition duration-300">
+                  <!-- Generated canvas goes here -->
                 </div>
-              </div>
-            </div>
 
-            <!-- Diagnostic control deck -->
-            <div class="bg-cyber-dark border border-cyber-border rounded p-4 flex flex-col items-center gap-4">
-              <div class="flex justify-between w-full text-[9px] text-cyber-muted font-bold font-mono uppercase border-b border-cyber-border pb-2">
-                <span>ZOOM: 1.0X</span>
-                <span>EXPOSURE: DYNAMIC_AUTO</span>
-                <span>STATUS: READY</span>
-              </div>
-              <p class="text-[10px] text-center text-cyber-muted leading-relaxed">
-                Center barcode inside target viewfinder to auto-trigger database lookups, or capture high-res frame to activate Multimodal OCR analysis.
-              </p>
-
-              <!-- Main Red Capture Button -->
-              <button id="btn-capture" onclick="app.captureAndProcess()" class="w-full bg-cyber-red hover:bg-red-500 text-white font-bold py-3.5 rounded transition flex items-center justify-center gap-2 text-xs uppercase tracking-widest font-mono shadow-[0_0_15px_rgba(255,68,68,0.25)]">
-                <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                SNAP CAPTURE FRAME
-              </button>
-            </div>
-
-          </section>
-
-          <!-- ============================================== -->
-          <!-- VIEW 3: AI DIAGNOSTICS & VERIFICATION PANEL    -->
-          <!-- ============================================== -->
-          <section id="view-verify" class="hidden space-y-6">
-
-            <!-- Control deck headers -->
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-cyber-dark border border-cyber-border p-4 rounded">
-              <div>
-                <h2 class="text-sm font-bold text-cyber-cyan uppercase tracking-widest">VERIFY SCAN LOGS</h2>
-                <p class="text-[10px] text-cyber-muted font-mono uppercase">Review parameters before compiling into registry storage.</p>
-              </div>
-              <div class="flex gap-2 w-full md:w-auto">
-                <button onclick="app.cancelVerification()" class="flex-1 md:flex-none bg-cyber-element border border-cyber-border text-cyber-text hover:bg-cyber-border font-bold text-xs uppercase px-4 py-2.5 rounded transition">
-                  DISCARD ENTRY
-                </button>
-                <button onclick="app.saveVerification()" class="flex-1 md:flex-none bg-cyber-green text-cyber-darker hover:brightness-115 font-bold text-xs uppercase px-6 py-2.5 rounded transition shadow-[0_0_15px_rgba(0,255,65,0.25)]">
-                  COMMIT ENTRY
-                </button>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              
-              <!-- Left Diagnostic Side Box -->
-              <div class="lg:col-span-4 space-y-6">
-                
-                <!-- Snapshot Frame visualizer -->
-                <div class="bg-cyber-dark border border-cyber-border p-4 rounded space-y-3">
-                  <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-wider">LOGGED FRAME IMAGE</h3>
-                  <div class="relative aspect-square w-full rounded overflow-hidden bg-black border border-cyber-border">
-                    <img id="verify-preview-img" class="w-full h-full object-cover" src="" alt="Captured Frame" />
-                    <div class="absolute bottom-2 right-2 bg-cyber-darker/80 text-cyber-cyan text-[8px] px-2 py-1 border border-cyber-border rounded backdrop-blur">
-                      TARGET_SNAPSHOT_CROP
-                    </div>
-                  </div>
-                  <button onclick="app.openScanner()" class="w-full bg-cyber-element hover:bg-cyber-border text-cyber-cyan text-[10px] font-bold py-2 rounded border border-cyber-cyan/25 transition flex items-center justify-center gap-1.5 uppercase font-mono">
-                    <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
-                    Retake Stream Snapshot
+                <!-- Reference Flat Photo Mode Container -->
+                <div id="verify-photo-mode-container" class="hidden absolute inset-0 w-full h-full z-10 bg-black">
+                  <img id="verify-preview-img" class="w-full h-full object-contain select-none" src="" alt="Active Angle View" />
+                  
+                  <!-- Nav buttons for photo view -->
+                  <button onclick="app.prevViewerAngle()" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/80 text-white border border-slate-700 hover:bg-slate-800 transition flex items-center justify-center">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="app.nextViewerAngle()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/80 text-white border border-slate-700 hover:bg-slate-800 transition flex items-center justify-center">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
                   </button>
                 </div>
 
-                <!-- AI confidence diagnostics dashboard -->
-                <div id="ai-confidence-panel" class="hidden bg-cyber-dark border border-cyber-border p-4 rounded space-y-3">
-                  <div class="flex justify-between items-center">
-                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-wider">AI DIAGNOSTIC INDEX</h3>
-                    <span id="ai-confidence-value" class="text-xs font-bold text-cyber-cyan font-mono">0%</span>
+                <!-- Step-by-Step 3D Reconstruction Progress Overlay -->
+                <div id="reconstruct-progress-overlay" class="hidden absolute inset-0 z-20 bg-slate-900/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
+                  <div class="relative w-12 h-12 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-2 border-slate-750"></div>
+                    <div class="absolute inset-0 rounded-full border-2 border-t-indigo-500 animate-spin"></div>
                   </div>
-                  
-                  <div class="w-full bg-cyber-element rounded-full h-1.5 border border-cyber-border">
-                    <div id="ai-confidence-bar" class="bg-cyber-cyan h-full rounded" style="width: 0%"></div>
+                  <div class="space-y-1">
+                    <h4 id="reconstruct-status-title" class="text-xs font-bold uppercase text-indigo-400 tracking-widest">Preparing photos...</h4>
+                    <p class="text-[9px] text-slate-400 uppercase">ESTIMATING SURFACE WRAPS</p>
                   </div>
+                  <div class="w-32 bg-slate-800 h-1 rounded overflow-hidden">
+                    <div id="reconstruct-progress-bar" class="bg-indigo-500 h-full w-1/5 transition-all duration-300"></div>
+                  </div>
+                </div>
 
-                  <!-- Confidence warnings -->
-                  <div id="ai-confidence-warning" class="hidden flex items-start gap-2 bg-cyber-orange/10 text-cyber-orange p-3 rounded border border-cyber-orange/30 text-[10px]">
-                    <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0 text-cyber-orange"></i>
-                    <p class="leading-normal">
-                      <strong>PROBABILITY DEVIATION:</strong> Extraction metrics are low. Manual form validation highly recommended.
+                <!-- Dynamic Warning for Insufficient Photos -->
+                <div id="insufficient-photos-overlay" class="hidden absolute inset-0 z-20 bg-slate-900/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
+                  <i data-lucide="info" class="w-10 h-10 text-amber-500"></i>
+                  <div class="space-y-1.5 px-4">
+                    <h4 id="verify-more-photos-title" class="text-xs font-bold uppercase text-amber-500 tracking-wider">More photos needed</h4>
+                    <p id="verify-more-photos-desc" class="text-[10px] text-slate-300 leading-relaxed uppercase">
+                      At least 3 useful angles (e.g. Front, Back, Sides) are required to build a reliable, textured 3D representation.
                     </p>
+                    <p id="missing-angles-tip" class="text-[10px] text-indigo-400 uppercase font-bold pt-1"></p>
                   </div>
+                  <button onclick="app.returnToGuidedScannerForAdd()" id="verify-btn-add-missing" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase px-4 py-2 rounded-xl transition">
+                    Add Missing Photos
+                  </button>
                 </div>
 
               </div>
 
-              <!-- Right input form module -->
-              <div class="lg:col-span-8 bg-cyber-dark border border-cyber-border p-6 rounded">
-                <form id="verify-form" class="space-y-6" onsubmit="event.preventDefault()">
-                  
-                  <!-- Form Module 1: Core ID -->
-                  <div class="space-y-4">
-                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest border-b border-cyber-border pb-2">01 // CORE IDENTITY INDEX</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      
-                      <!-- Name -->
-                      <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-name">Product Name</label>
-                          <span id="source-product_name" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-name" required class="w-full" />
-                      </div>
-
-                      <!-- Brand -->
-                      <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-brand">Brand / Producer</label>
-                          <span id="source-brand" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-brand" class="w-full" />
-                      </div>
-
-                      <!-- Barcode -->
-                      <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-barcode">Barcode Index</label>
-                          <span id="source-barcode" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-barcode" class="w-full" />
-                      </div>
-
-                      <!-- Category -->
-                      <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-category">Category Register</label>
-                          <span id="source-category" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <select id="v-category" class="w-full">
-                          <option value="General">General / Other</option>
-                          <option value="Food">Food / Groceries</option>
-                          <option value="Beverage">Beverage</option>
-                          <option value="Cosmetic">Cosmetic / Personal Care</option>
-                          <option value="Medicine">Medicine / Pharma</option>
-                          <option value="Electronics">Electronics</option>
-                          <option value="Household">Household Care</option>
-                        </select>
-                      </div>
-
-                    </div>
-                  </div>
-
-                  <!-- Form Module 2: Financial/Quantities -->
-                  <div class="space-y-4 pt-4 border-t border-cyber-border">
-                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest border-b border-cyber-border pb-2">02 // FINANCIAL & QUANTITIES MATRIX</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      
-                      <!-- Qty -->
-                      <div class="md:col-span-2 space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-quantity">Net Contents</label>
-                          <span id="source-quantity" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-quantity" placeholder="e.g. 500, 1.5, 12" class="w-full" />
-                      </div>
-
-                      <!-- Unit -->
-                      <div class="md:col-span-2 space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-unit">Scale Unit</label>
-                          <span id="source-unit" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-unit" placeholder="e.g. g, ml, kg, L, pcs" class="w-full" />
-                      </div>
-
-                      <!-- MRP -->
-                      <div class="md:col-span-2 space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-mrp">Max Retail Price (MRP)</label>
-                          <span id="source-mrp" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-mrp" placeholder="e.g. $5.99" class="w-full" />
-                      </div>
-
-                      <!-- Price -->
-                      <div class="md:col-span-2 space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-selling_price">Acquisition Price</label>
-                          <span id="source-selling_price" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-selling_price" placeholder="e.g. $4.99" class="w-full" />
-                      </div>
-
-                    </div>
-                  </div>
-
-                  <!-- Form Module 3: Dates & Lots -->
-                  <div class="space-y-4 pt-4 border-t border-cyber-border">
-                    <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest border-b border-cyber-border pb-2">03 // SHELF-LIFE & LOT REGISTER</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      
-                      <!-- MFG Date -->
-                      <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-mfg">MFG Date</label>
-                          <span id="source-manufacture_date" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="date" id="v-mfg" class="w-full font-mono" />
-                      </div>
-
-                      <!-- EXP Date -->
-                      <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-exp">EXP Expiry Date</label>
-                          <span id="source-expiry_date" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="date" id="v-exp" class="w-full font-mono" />
-                      </div>
-
-                      <!-- Lot -->
-                      <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                          <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-batch">Batch/Lot Index</label>
-                          <span id="source-batch_number" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                        </div>
-                        <input type="text" id="v-batch" placeholder="e.g. B-1029X" class="w-full" />
-                      </div>
-
-                    </div>
-                  </div>
-
-                  <!-- Form Module 4: Compositions -->
-                  <div class="space-y-4 pt-4 border-t border-cyber-border">
-                    <div class="flex justify-between items-center">
-                      <h3 class="text-[10px] font-bold text-cyber-muted uppercase tracking-widest">04 // CHEMICAL & INGREDIENT COMPOSITION</h3>
-                      <span id="source-ingredients" class="badge-source badge-unverified">⚠ UNVERIFIED</span>
-                    </div>
-                    <div class="space-y-1">
-                      <label class="text-[10px] font-bold text-cyber-muted uppercase" for="v-ingredients">Composition Matrix (CSV)</label>
-                      <textarea id="v-ingredients" rows="3" placeholder="e.g. Water, Cane Sugar, Plant Lipids..." class="w-full"></textarea>
-                    </div>
-                  </div>
-
-                </form>
+              <!-- Minimal Controls Overlay Bar (Instruction 10) -->
+              <div id="three-controls-bar" class="flex justify-around items-center bg-slate-50 dark:bg-slate-900 border border-cyber-border p-2 rounded-xl text-[10px]">
+                <button onclick="app.reset3DView()" class="hover:text-indigo-600 transition p-1.5 flex items-center gap-1 font-bold">
+                  <span id="control-reset">↻ RESET</span>
+                </button>
+                <div class="h-4 w-px bg-cyber-border"></div>
+                <button onclick="app.zoomIn3DView()" class="hover:text-indigo-600 transition p-1.5 flex items-center gap-1 font-bold">
+                  <span id="control-zoomin">🔍 ZOOM +</span>
+                </button>
+                <button onclick="app.zoomOut3DView()" class="hover:text-indigo-600 transition p-1.5 flex items-center gap-1 font-bold">
+                  <span id="control-zoomout">ZOOM -</span>
+                </button>
+                <div class="h-4 w-px bg-cyber-border"></div>
+                <button onclick="app.toggleAutoRotate3D()" id="btn-toggle-auto-rotate" class="text-indigo-600 dark:text-indigo-400 font-bold transition p-1.5 flex items-center gap-1">
+                  <span id="control-autorotate">▶ AUTO ROTATE</span>
+                </button>
+                <div class="h-4 w-px bg-cyber-border"></div>
+                <button onclick="app.toggle3DViewMode()" id="btn-toggle-view-mode" class="hover:text-indigo-600 transition p-1.5 flex items-center gap-1 font-bold">
+                  <span id="btn-toggle-view-text">▣ PHOTOS</span>
+                </button>
               </div>
+
+              <!-- Setup 3D Trigger container -->
+              <div id="trigger-3d-build-container" class="pt-2 text-center">
+                <div class="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-transparent p-4 rounded-xl text-xs leading-normal">
+                  <p id="reconstruct-title-ready" class="font-bold mb-2 text-slate-800 dark:text-indigo-300">PRODUCT IMAGE DATA INTEGRATED ✓</p>
+                  <button onclick="app.run3DModelReconstruction()" id="btn-verify-build-3d" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition">
+                    Generate 3D Model
+                  </button>
+                </div>
+              </div>
+
+              <!-- Angle indicator dots for photo mode -->
+              <div class="flex justify-center gap-1.5 hidden" id="angle-viewer-dots"></div>
 
             </div>
 
-          </section>
+            <!-- Photos Used Report Tag -->
+            <div class="bg-cyber-dark border border-cyber-border p-4 rounded-xl flex justify-between items-center text-xs transition-colors shadow-sm">
+              <span id="lbl-captures-registered" class="text-cyber-muted font-bold">TOTAL CAPTURES REGISTERED:</span>
+              <span id="photos-used-count-tag" class="text-emerald-500 font-bold">5 PHOTOS USED</span>
+            </div>
 
-        </main>
+            <!-- AI Confidence Index & Rating Metric -->
+            <div id="ai-confidence-panel" class="bg-cyber-dark border border-cyber-border p-4 rounded-xl space-y-3 transition-colors shadow-sm">
+              <div class="flex justify-between items-center">
+                <h3 id="lbl-observ-reliability" class="text-[10px] font-bold text-cyber-muted uppercase tracking-wider">AI OBSERVATION RELIABILITY</h3>
+                <span id="ai-confidence-value" class="text-xs font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+              </div>
+              
+              <div class="w-full bg-cyber-element rounded-full h-1.5 border border-cyber-border">
+                <div id="ai-confidence-bar" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
 
-        <!-- System Footer -->
-        <footer class="h-10 bg-cyber-dark border-t border-cyber-border flex items-center px-4 md:px-8 justify-between text-[9px] font-mono text-cyber-muted tracking-tight mt-auto">
-          <div class="flex gap-4">
-            <span class="hidden sm:inline">DECODER_BUFFER: ACTIVE</span>
-            <span>DIAGNOSTIC_FPS: 60.0</span>
-            <span class="hidden md:inline">API: Vision_Platform_v3.2</span>
+              <div id="ai-rating-badge-container" class="pt-1 text-center">
+                <span id="ai-rating-badge" class="inline-block text-[9px] font-extrabold uppercase tracking-wider px-3 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-150 rounded-full">HIGH RELIABILITY</span>
+              </div>
+            </div>
+
           </div>
-          <div>
-            <span>SYSTEM ENCRYPTION: AES_256_LOCAL</span>
+
+          <!-- Right input form module with expandable product details drawers (Instruction 9) -->
+          <div class="lg:col-span-7 bg-cyber-dark border border-cyber-border p-6 rounded-2xl shadow-sm transition-colors space-y-4">
+            
+            <form id="verify-form" class="space-y-4" onsubmit="event.preventDefault()">
+              
+              <!-- Segment 1: Identity Accordion -->
+              <div class="border border-cyber-border rounded-xl overflow-hidden">
+                <button type="button" onclick="app.toggleAccordion('acc-identity')" class="w-full bg-slate-50 dark:bg-slate-900/40 px-4 py-3 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase flex justify-between items-center border-b border-cyber-border">
+                  <span id="acc-lbl-identity">01 // PRODUCT IDENTITY</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="acc-identity" class="p-4 space-y-4">
+                  <!-- Name -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-name" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-name">Product Name</label>
+                      <span id="source-product_name" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <input type="text" id="v-name" required class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                  </div>
+
+                  <!-- Brand -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-brand" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-brand">Brand / Trademark</label>
+                      <span id="source-brand" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <input type="text" id="v-brand" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                  </div>
+
+                  <!-- Barcode -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-barcode" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-barcode">Barcode Registry Code</label>
+                      <span id="source-barcode" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <input type="text" id="v-barcode" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                  </div>
+
+                  <!-- Category -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-category" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-category">Category Register</label>
+                      <span id="source-category" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <select id="v-category" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl">
+                      <option value="General">General / Other</option>
+                      <option value="Food">Food / Groceries</option>
+                      <option value="Beverage">Beverage</option>
+                      <option value="Cosmetic">Cosmetic / Personal Care</option>
+                      <option value="Medicine">Medicine / Pharma</option>
+                      <option value="Electronics">Electronics</option>
+                      <option value="Household">Household Care</option>
+                    </select>
+                  </div>
+
+                  <!-- Product Description -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-desc" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-description">Product Description</label>
+                      <span id="source-product_description" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <textarea id="v-description" rows="2" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" placeholder="Product details..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Segment 2: Pricing & Quantification -->
+              <div class="border border-cyber-border rounded-xl overflow-hidden">
+                <button type="button" onclick="app.toggleAccordion('acc-pricing')" class="w-full bg-slate-50 dark:bg-slate-900/40 px-4 py-3 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase flex justify-between items-center border-b border-cyber-border">
+                  <span id="acc-lbl-pricing">02 // PRICING & QUANTITY</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="acc-pricing" class="hidden p-4 space-y-4">
+                  <div class="grid grid-cols-2 gap-4">
+                    <!-- Qty -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-qty" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-quantity">Net Contents</label>
+                        <span id="source-quantity" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-quantity" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+
+                    <!-- Unit -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-unit" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-unit">Scale Unit</label>
+                        <span id="source-unit" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-unit" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+
+                    <!-- MRP -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-mrp" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-mrp">Max Retail Price (MRP)</label>
+                        <span id="source-mrp" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-mrp" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+
+                    <!-- Price -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-selling" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-selling_price">Selling Price</label>
+                        <span id="source-selling_price" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-selling_price" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Segment 3: Expiry tracker -->
+              <div class="border border-cyber-border rounded-xl overflow-hidden">
+                <button type="button" onclick="app.toggleAccordion('acc-expiry')" class="w-full bg-slate-50 dark:bg-slate-900/40 px-4 py-3 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase flex justify-between items-center border-b border-cyber-border">
+                  <span id="acc-lbl-expiry">03 // EXPIRY & SHELF-LIFE</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="acc-expiry" class="hidden p-4 space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- MFG Date -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-mfg" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-mfg">MFG Date</label>
+                        <span id="source-manufacture_date" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="date" id="v-mfg" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+
+                    <!-- EXP Date -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-exp" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-exp">EXP Expiry Date</label>
+                        <span id="source-expiry_date" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="date" id="v-exp" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+
+                    <!-- Best Before -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-bb" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-best-before">Best Before</label>
+                        <span id="source-best_before" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-best-before" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Segment 4: Origins -->
+              <div class="border border-cyber-border rounded-xl overflow-hidden">
+                <button type="button" onclick="app.toggleAccordion('acc-origins')" class="w-full bg-slate-50 dark:bg-slate-900/40 px-4 py-3 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase flex justify-between items-center border-b border-cyber-border">
+                  <span id="acc-lbl-origins">04 // MANUFACTURER & ORIGIN</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="acc-origins" class="hidden p-4 space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Manufacturer -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-manu" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-manufacturer">Manufacturer</label>
+                        <span id="source-manufacturer" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-manufacturer" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+
+                    <!-- Country -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-country" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-country">Country</label>
+                        <span id="source-country_of_origin" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-country" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+
+                    <!-- Batch -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between items-center">
+                        <label id="lbl-f-batch" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-batch">Batch SKU</label>
+                        <span id="source-batch_number" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                      </div>
+                      <input type="text" id="v-batch" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Segment 5: Ingredients & Nutrition facts -->
+              <div class="border border-cyber-border rounded-xl overflow-hidden">
+                <button type="button" onclick="app.toggleAccordion('acc-nutrition')" class="w-full bg-slate-50 dark:bg-slate-900/40 px-4 py-3 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase flex justify-between items-center border-b border-cyber-border">
+                  <span id="acc-lbl-nutrition">05 // INGREDIENTS & NUTRITION</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="acc-nutrition" class="hidden p-4 space-y-4">
+                  <!-- Ingredients -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-ingredients" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-ingredients">Composition Matrix (CSV)</label>
+                      <span id="source-ingredients" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <textarea id="v-ingredients" rows="3" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl"></textarea>
+                  </div>
+
+                  <!-- Nutrition facts -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-nutrition" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-nutrition">Nutrition Information Summary</label>
+                      <span id="source-nutrition_information" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <textarea id="v-nutrition" rows="3" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl"></textarea>
+                  </div>
+
+                  <!-- Allergens -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-allergens" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-allergens">Allergen Warnings</label>
+                      <span id="source-allergens" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <input type="text" id="v-allergens" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Segment 6: Storage instructions & Warnings -->
+              <div class="border border-cyber-border rounded-xl overflow-hidden">
+                <button type="button" onclick="app.toggleAccordion('acc-storage')" class="w-full bg-slate-50 dark:bg-slate-900/40 px-4 py-3 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase flex justify-between items-center border-b border-cyber-border">
+                  <span id="acc-lbl-storage">06 // STORAGE & WARNINGS</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="acc-storage" class="hidden p-4 space-y-4">
+                  <!-- Storage Instructions -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-storage" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-storage">Storage Instructions</label>
+                      <span id="source-storage_instructions" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <input type="text" id="v-storage" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                  </div>
+
+                  <!-- Warnings -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                      <label id="lbl-f-warnings" class="text-[10px] font-bold text-cyber-muted uppercase" for="v-warnings">Product Safety Warnings</label>
+                      <span id="source-warnings" class="badge-source badge-unverified">✓ DIRECT SCAN</span>
+                    </div>
+                    <input type="text" id="v-warnings" class="w-full p-2.5 text-xs bg-cyber-element border border-cyber-border rounded-xl" />
+                  </div>
+                </div>
+              </div>
+
+            </form>
           </div>
-        </footer>
 
-      </div>
-
-    </div>
-
-    <!-- Global Processing Overlay Backdrop -->
-    <div id="loading-backdrop" class="hidden fixed inset-0 bg-cyber-darker/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center">
-      <div class="bg-cyber-dark border border-cyber-border text-cyber-text p-8 rounded max-w-sm w-full space-y-6 shadow-2xl">
-        <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
-          <!-- Cyber dual spinning ring -->
-          <div class="absolute inset-0 rounded-full border-2 border-cyber-border"></div>
-          <div class="absolute inset-0 rounded-full border-2 border-t-cyber-cyan border-r-cyber-cyan animate-spin"></div>
-          <div class="w-2 h-2 bg-cyber-green rounded-full animate-ping"></div>
         </div>
-        <div class="space-y-2 font-mono">
-          <h4 id="loading-title" class="text-xs font-bold uppercase text-cyber-cyan tracking-widest">Optimizing stream...</h4>
-          <p id="loading-desc" class="text-[10px] text-cyber-muted leading-relaxed uppercase">
-            Recalibrating high-fidelity camera optics.
+
+      </section>
+
+    </main>
+
+    <!-- FULL-SCREEN FAST SCANNING OVERLAY -->
+    <section id="view-fast-scanner" class="hidden fixed inset-0 z-50 bg-black flex flex-col justify-between">
+      <!-- Full-screen video element -->
+      <video id="fast-scanner-video" class="absolute inset-0 w-full h-full object-cover" playsinline muted></video>
+
+      <!-- Overlay HUD to dim outside area -->
+      <div class="absolute inset-0 pointer-events-none flex flex-col justify-between p-5">
+        <!-- Top Bar HUD -->
+        <div class="flex justify-between items-center z-10 pointer-events-auto">
+          <button id="fast-btn-exit" onclick="app.exitFastScanMode()" class="bg-black/60 hover:bg-black/80 text-white rounded-full p-3 transition border border-white/10 flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            <span class="text-xs font-bold uppercase tracking-wider pr-1">Exit</span>
+          </button>
+          <div class="bg-black/60 border border-white/10 text-white px-4 py-2.5 rounded-full flex items-center gap-2 shadow-lg">
+            <i data-lucide="package" class="w-4 h-4 text-emerald-400"></i>
+            <span class="text-xs font-bold uppercase tracking-wider">Scanned: <span id="fast-scan-count" class="text-emerald-400 font-mono">0</span></span>
+          </div>
+          <button id="fast-btn-flash" onclick="app.toggleFastScannerFlash()" class="bg-black/60 hover:bg-black/80 text-white rounded-full p-3 transition border border-white/10">
+            <i data-lucide="zap" id="fast-flash-icon" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Center Camera Alignment Box -->
+        <div class="relative w-full max-w-sm aspect-square mx-auto my-auto flex items-center justify-center pointer-events-none">
+          <div id="fast-scan-box" class="absolute w-72 h-72 border border-white/20 rounded-3xl flex items-center justify-center">
+            <!-- Tech targeting corners -->
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 rounded-tl-2xl"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 rounded-tr-2xl"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-500 rounded-bl-2xl"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-500 rounded-br-2xl"></div>
+            
+            <!-- Scanning laser visual helper -->
+            <div class="absolute left-0 right-0 h-1 bg-emerald-500/25 shadow-[0_0_12px_#10b981] animate-pulse"></div>
+          </div>
+        </div>
+
+        <!-- Bottom Feedback Panel HUD -->
+        <div class="z-10 pointer-events-auto flex flex-col items-center gap-2 mb-6">
+          <div id="fast-scanner-status" class="bg-black/80 border border-white/10 text-white text-xs font-semibold px-5 py-3 rounded-full backdrop-blur-md uppercase tracking-wider text-center flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="fast-status-dot"></span>
+            <span id="fast-status-text">Align product barcode or date...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FLOATING BOTTON NAVIGATION STRIP (Instruction 12) -->
+    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white/95 dark:bg-slate-950/95 border-t border-cyber-border flex justify-around items-center z-45 px-4 backdrop-blur-md shadow-lg transition-all duration-300">
+      <button id="nav-btn-home" onclick="app.switchTab('home')" class="flex flex-col items-center gap-1 text-indigo-600 font-bold transition p-1.5 rounded-lg">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[10px] uppercase font-bold" id="nav-lbl-home">Home</span>
+      </button>
+      <button id="nav-btn-scan" onclick="app.switchTab('scan')" class="flex flex-col items-center gap-1 text-cyber-muted hover:text-indigo-600 transition p-1.5 rounded-lg relative -translate-y-2 bg-indigo-600 text-white w-12 h-12 justify-center rounded-full shadow-lg shadow-indigo-100 dark:shadow-none border-4 border-white dark:border-slate-900">
+        <i data-lucide="scan" class="w-5 h-5"></i>
+      </button>
+      <button id="nav-btn-products" onclick="app.switchTab('products')" class="flex flex-col items-center gap-1 text-cyber-muted hover:text-indigo-600 transition p-1.5 rounded-lg">
+        <i data-lucide="package" class="w-5 h-5"></i>
+        <span class="text-[10px] uppercase font-bold" id="nav-lbl-products">Products</span>
+      </button>
+      <button id="nav-btn-settings" onclick="app.switchTab('settings')" class="flex flex-col items-center gap-1 text-cyber-muted hover:text-indigo-600 transition p-1.5 rounded-lg">
+        <i data-lucide="sliders" class="w-5 h-5"></i>
+        <span class="text-[10px] uppercase font-bold" id="nav-lbl-settings">Settings</span>
+      </button>
+    </nav>
+
+    <!-- Global Processing Overlay Backdrop (Instruction 8) -->
+    <div id="loading-backdrop" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
+      <div class="bg-cyber-dark border border-cyber-border text-cyber-text p-8 rounded-2xl max-w-sm w-full space-y-6 shadow-2xl transition-colors">
+        <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border-2 border-indigo-100 dark:border-indigo-950"></div>
+          <div class="absolute inset-0 rounded-full border-2 border-t-indigo-600 border-r-indigo-600 animate-spin"></div>
+        </div>
+        <div class="space-y-2">
+          <h4 id="loading-title" class="text-sm font-bold uppercase text-indigo-600 dark:text-indigo-400">Processing...</h4>
+          <p id="loading-desc" class="text-xs text-cyber-muted leading-relaxed uppercase">
+            Analyzing captured visual patterns.
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Product Registry Details Modal Viewer -->
-    <div id="product-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="bg-cyber-dark border border-cyber-border rounded max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col font-mono">
-        <div class="p-4 border-b border-cyber-border flex justify-between items-center bg-cyber-darker">
-          <h3 class="text-xs font-bold uppercase tracking-widest text-cyber-cyan">REGISTRY RECORD PREVIEW</h3>
-          <button onclick="app.closeModal()" class="text-cyber-muted hover:text-cyber-text transition">
+    <!-- Product Registry Details Modal Viewer (Instruction 9 & 10) -->
+    <div id="product-detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/40">
+      <div class="bg-cyber-dark border border-cyber-border rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col transition-colors">
+        <div class="p-4 border-b border-cyber-border flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 sticky top-0 z-10">
+          <h3 class="text-xs font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400" id="lbl-record-preview">REGISTRY RECORD PREVIEW</h3>
+          <button onclick="app.closeModal()" class="text-cyber-muted hover:text-slate-800 dark:hover:text-white transition p-1 bg-cyber-element rounded-lg">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
@@ -520,15 +996,15 @@
           <!-- Populated programmatically -->
         </div>
 
-        <div class="p-4 border-t border-cyber-border bg-cyber-darker flex justify-between items-center">
-          <button id="modal-btn-delete" class="text-cyber-red hover:bg-cyber-red/10 border border-transparent hover:border-cyber-red/30 font-bold text-xs uppercase px-4 py-2 rounded transition font-mono">
+        <div class="p-4 border-t border-cyber-border bg-slate-50 dark:bg-slate-900/40 flex justify-between items-center sticky bottom-0 z-10">
+          <button id="modal-btn-delete" class="text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200/50 font-bold text-xs uppercase px-4 py-2.5 rounded-xl transition">
             DELETE FILE
           </button>
           <div class="flex gap-2">
-            <button onclick="app.closeModal()" class="bg-cyber-element border border-cyber-border text-cyber-text font-bold text-xs uppercase px-4 py-2 rounded hover:bg-cyber-border transition">
+            <button onclick="app.closeModal()" class="bg-cyber-element border border-cyber-border text-slate-700 dark:text-slate-300 font-bold text-xs uppercase px-4 py-2.5 rounded-xl hover:bg-cyber-border transition">
               CLOSE
             </button>
-            <button id="modal-btn-edit" class="bg-cyber-cyan text-cyber-darker font-bold text-xs uppercase px-4 py-2 rounded hover:brightness-110 transition">
+            <button id="modal-btn-edit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase px-4 py-2.5 rounded-xl shadow transition">
               EDIT ENTRY
             </button>
           </div>
@@ -536,8 +1012,8 @@
       </div>
     </div>
 
-    <!-- Toast Tech banner -->
-    <div id="toast-container" class="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none">
+    <!-- Toast container banner -->
+    <div id="toast-container" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-max max-w-[90vw]">
       <!-- Toasts inserted programmatically -->
     </div>
 
